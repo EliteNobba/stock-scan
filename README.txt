@@ -1,29 +1,10 @@
-STOCK SCAN - iPhone PWA Prototype v1.0
+Stock Scan iPhone PWA v1.1
 
-WHAT IS INCLUDED
-- iPhone-style Home screen
-- New Scan sessions
-- Rear-camera barcode scanner
-- Manual barcode fallback
-- Quantity +/-
-- Take item photo
-- Current Scan
-- Remove scanned items
-- Save/reopen scans locally
-- Part Search placeholder
-- PWA manifest + offline app shell
+Scanner fix release.
+- Uses ZXing BrowserMultiFormatReader.decodeFromVideoDevice for continuous camera decoding.
+- Forces ZXing path instead of relying on BarcodeDetector.
+- Shows decoder/camera diagnostics below preview.
+- Rear camera preference is handled by ZXing when device id is omitted.
+- Cache version bumped to stock-scan-v1.1 and app JS renamed so iPhone does not reuse v1 scanner code.
 
-IMPORTANT
-Camera access on iPhone requires the app to be served from an HTTPS website (localhost is the development exception). Opening index.html directly from Files will not provide normal camera/PWA behaviour.
-
-SCANNER
-The app tries the browser BarcodeDetector API first. If unavailable it loads ZXing from the CDN. Once the next hosting/test step is set up, we can test this on the actual iPhone and then package the barcode library locally if required.
-
-NEXT BUILD
-- MechanicDesk parts database import/sync
-- Our Data database
-- barcode lookup + 13-to-12 digit fallback
-- multiple item photos
-- export scan data for Excel
-- phone scan integration with Supplier Order Generator
-- stronger IndexedDB storage + backup/export
+Upload all files in this folder to the ROOT of the GitHub Pages stock-scan repository, replacing existing index.html/styles.css/manifest.webmanifest/sw.js where prompted and adding app-v1.1.js.
