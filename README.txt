@@ -1,10 +1,12 @@
-Stock Scan iPhone PWA v1.1
+Stock Scan iPhone PWA v1.2
 
-Scanner fix release.
-- Uses ZXing BrowserMultiFormatReader.decodeFromVideoDevice for continuous camera decoding.
-- Forces ZXing path instead of relying on BarcodeDetector.
-- Shows decoder/camera diagnostics below preview.
-- Rear camera preference is handled by ZXing when device id is omitted.
-- Cache version bumped to stock-scan-v1.1 and app JS renamed so iPhone does not reuse v1 scanner code.
+Changes from v1.1:
+- Keeps the proven v1.1 barcode scanner.
+- After ADD TO SCAN, shows an Item Added screen instead of trapping the user in the item/scanner flow.
+- Provides SCAN NEXT ITEM, CURRENT SCAN, SAVE SCAN, and HOME choices.
+- Item photo is stored with the scan item before navigation.
+- SAVE SCAN now snapshots the current scan into Saved Scans.
+- Updated service-worker cache to v1.2 so iPhone receives the new build.
 
-Upload all files in this folder to the ROOT of the GitHub Pages stock-scan repository, replacing existing index.html/styles.css/manifest.webmanifest/sw.js where prompted and adding app-v1.1.js.
+GitHub Pages update:
+Upload all files inside this folder to the root of the existing stock-scan repository and commit the changes.
