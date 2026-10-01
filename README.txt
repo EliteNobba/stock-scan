@@ -1,12 +1,9 @@
-Stock Scan iPhone PWA v1.2
+Stock Scan iPhone PWA v1.3
 
-Changes from v1.1:
-- Keeps the proven v1.1 barcode scanner.
-- After ADD TO SCAN, shows an Item Added screen instead of trapping the user in the item/scanner flow.
-- Provides SCAN NEXT ITEM, CURRENT SCAN, SAVE SCAN, and HOME choices.
-- Item photo is stored with the scan item before navigation.
-- SAVE SCAN now snapshots the current scan into Saved Scans.
-- Updated service-worker cache to v1.2 so iPhone receives the new build.
-
-GitHub Pages update:
-Upload all files inside this folder to the root of the existing stock-scan repository and commit the changes.
+Changes:
+- Version number clearly shown at top of app.
+- SAVE SCAN now opens a naming/reference prompt.
+- Successful save opens a clear SCAN SAVED confirmation screen.
+- Confirmation shows scan name, item lines, total quantity and saved time.
+- After saving: Start New Scan, View Saved Scan, or Home.
+- Working v1.1/v1.2 ZXing continuous barcode scanner retained.
