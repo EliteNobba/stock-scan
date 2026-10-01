@@ -1,17 +1,18 @@
-STOCK SCAN iPhone PWA — v1.4
+Stock Scan iPhone PWA v1.5
 
-Changes from v1.3:
-- Version number permanently visible at top.
-- NEW SCAN opens the live barcode scanner immediately.
-- SCAN NEXT ITEM opens the live scanner immediately.
-- SCAN ITEM from Current Scan opens the live scanner immediately.
-- Added Data Files screen.
-- Can load MechanicDesk export.xls / .xlsx locally for barcode lookup.
-- MechanicDesk mapping: B Part No, C Supplier, E Barcode, G Description, K Buy Price.
-- Barcode lookup uses exact match first, then 13-digit -> first 12 digits fallback.
-- Added Part Search against loaded MechanicDesk data.
-- Can import LoMag .xls/.xlsx into Saved Scans when Barcode and Quantity headers are present.
-- Private source data remains on the device; it is NOT uploaded to the public GitHub repository.
-- Automatic shared OneDrive source-file access is NOT yet implemented; that is the next integration stage.
+Changes in v1.5:
+- Direct Microsoft OneDrive sign-in from the PWA.
+- Uses Microsoft Graph with Files.ReadWrite.AppFolder least-privilege permission.
+- Refresh export.xls directly from the Stock Scan OneDrive app folder.
+- Manual export.xls and LoMag import retained as fallback.
+- Existing v1.4 scanner, photos, scan sessions, save confirmation and part search retained.
 
-Known stable fallback: v1.3.
+One-time Microsoft setup is required:
+1. Register Stock Scan as a Single-page application in Microsoft Entra.
+2. Add the exact GitHub Pages app URL as a SPA redirect URI.
+3. Add delegated Microsoft Graph permission Files.ReadWrite.AppFolder.
+4. Copy the Application (client) ID into DATA FILES > OneDrive Direct Connection.
+5. Sign in and consent.
+6. Place export.xls in the OneDrive app folder created for Stock Scan.
+
+IMPORTANT: GitHub contains app code only. Private inventory files remain in OneDrive/device storage.
