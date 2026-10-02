@@ -1,17 +1,12 @@
-Stock Scan iPhone PWA v1.8
+STOCK SCAN — v1.9
 
-Changes from v1.5:
-- Clear STOCK SCAN — v1.8 version at top.
-- ADD TO SCAN now opens a large ITEM ADDED confirmation panel.
-- Confirmation shows item/quantity and whether a photo is attached.
-- SAVE SCAN now opens a large SCAN SAVED confirmation panel with name, line count, total quantity and saved time.
-- Save refuses an empty scan and gives visible feedback.
-- Removed structuredClone dependency from save/open path where practical.
-- Cache/service-worker bumped to v1.8 so iPhone is less likely to keep stale v1.5 files.
-- Existing working barcode scanner and data-file functionality retained.
+Changes from v1.8:
+- Home page simplified to SCAN PARTS, PARTS SEARCH and SETTINGS.
+- Scan-related functions grouped under SCAN PARTS.
+- Data Files moved under SETTINGS.
+- ADD TO SCAN now stays on the Item page and shows a large green ITEM ADDED TO SCAN confirmation.
+- Confirmation includes SCAN ANOTHER ITEM, CURRENT SCAN and SAVE SCAN.
+- SCAN ANOTHER ITEM returns directly to the camera.
+- New v1.9 service-worker cache identity to prevent stale mixed builds.
 
-Camera permission note:
-iOS controls camera permission. A website/PWA cannot silently force camera access to Always Allow.
-
-
-v1.8 recovery build: preserves the proven v1.6 ZXing continuous scanner implementation and uses a fresh cache/file identity to prevent mixed old PWA assets.
+Important: v1.6 remains the stable fallback. Test barcode scanning first after upload.
