@@ -17,3 +17,6 @@ TEST FIRST:
 
 
 v1.14: Fixed SCAN ANOTHER ITEM being blocked when browser localStorage is over quota. The current scan can continue in memory even if persistence fails. Scanner decoding code unchanged.
+
+
+v1.16: Fixed full-size photo viewer by adding the missing viewer dialog to index.html and making thumbnails real tappable buttons with direct event handlers. Core scanner and IndexedDB photo storage unchanged.
