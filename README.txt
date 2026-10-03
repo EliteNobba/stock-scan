@@ -1,16 +1,19 @@
-STOCK SCAN — v1.12
+STOCK SCAN — v1.13
 
 Recovery build focused on the core scan path.
 
 Fixes:
-- Repairs the JavaScript syntax error in v1.12 that prevented the Home SCAN PARTS button and other controls from working.
+- Repairs the JavaScript syntax error in v1.13 that prevented the Home SCAN PARTS button and other controls from working.
 - Preserves the existing scanner implementation.
 - Preserves the Add to Scan green confirmation logic.
-- Uses a new v1.12 service-worker/cache identity.
+- Uses a new v1.13 service-worker/cache identity.
 
 TEST FIRST:
-1. Confirm STOCK SCAN — v1.12.
+1. Confirm STOCK SCAN — v1.13.
 2. Tap SCAN PARTS.
 3. Tap NEW SCAN.
 4. Scan a barcode.
 5. Tap ADD TO SCAN and confirm the green ITEM ADDED TO SCAN box appears.
+
+
+v1.13: Fixed SCAN ANOTHER ITEM being blocked when browser localStorage is over quota. The current scan can continue in memory even if persistence fails. Scanner decoding code unchanged.
