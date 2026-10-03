@@ -146,7 +146,7 @@ function getStockOrders(){return parts.map(p=>{const c=stockCfg[stockKey(p)]||{}
 function renderStockOrderSummary(){const el=$('#stocktakeOrderSummary');if(!el)return;const o=getStockOrders();el.innerHTML=o.length?`<div class="card"><b>${o.length} item(s) below minimum</b><br><small>Total units to order: ${o.reduce((n,x)=>n+x.order,0)}</small></div>`:'<div class="card"><small>No shortages calculated yet.</small></div>'}
 $('#createStocktakeOrder').onclick=()=>{const o=getStockOrders();if(!o.length){toast('No items below minimum');return}const by={};o.forEach(x=>{const s=x.p.supplier||'No Supplier';(by[s]??=[]).push(x)});$('#stocktakeOrderSummary').innerHTML='<div class="successBanner"><div class="successTick">✓</div><h2>ORDER LIST CREATED</h2></div>'+Object.entries(by).map(([sup,a])=>`<div class="card"><b>${esc(sup)}</b>${a.map(x=>`<div class="orderLine"><span>${esc(x.p.part||x.p.barcode)}<br><small>${esc(x.p.description||'')}</small></span><b>Qty ${x.order}</b></div>`).join('')}</div>`).join('');toast('ORDER LIST CREATED ✓')};
 
-// ===== v1.17 local UI/data foundation: login, users, sections and result-field permissions =====
+// ===== v1.18 local UI/data foundation: login, users, sections and result-field permissions =====
 // This is intentionally device-local for prototype testing. Production employee security will be backend-enforced.
 const AUTH_KEY='stockscan_auth_v117', USERS_KEY='stockscan_users_v117', SECTIONS_KEY='stockscan_sections_v117';
 const SEARCH_FIELDS=['Part Number','Description','Photo','Barcode','Quantity','Location','Category','Buy Price','Sell Price','Supplier','Minimum Qty','Maximum Qty','Stock History'];
@@ -157,17 +157,36 @@ async function hashPass(v){const b=new TextEncoder().encode(v);const h=await cry
 function authState(){return readJ(AUTH_KEY,null)}
 function showLogin(){stopCamera();$$('.screen').forEach(x=>x.classList.remove('active'));$('#login').classList.add('active');const exists=!!authState();$('#firstRun').hidden=exists;$('#loginBox').hidden=!exists;$('#loginMsg').textContent=''}
 async function createFirstAdmin(){const u=$('#setupUser').value.trim(),p=$('#setupPass').value;if(!u||p.length<4){toast('Enter username and password');return}const passHash=await hashPass(p);writeJ(AUTH_KEY,{created:true});writeJ(SECTIONS_KEY,[{id:'home',name:'Home',sells:false},{id:'work',name:'Work',sells:true}]);writeJ(USERS_KEY,[{id:'u-'+Date.now(),username:u,role:'admin',passHash,sections:['home','work'],fields:[...SEARCH_FIELDS]}]);$('#setupPass').value='';showLogin();toast('ADMIN CREATED ✓')}
-async function doLogin(){const u=$('#loginUser').value.trim(),p=$('#loginPass').value,users=readJ(USERS_KEY,[]),h=await hashPass(p);const hit=users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.passHash===h);if(!hit){$('#loginMsg').textContent='Username or password is incorrect.';return}sessionUser=hit;$('#welcomeUser').textContent=hit.username+(hit.role==='admin'?' — Admin':'');$('#loginPass').value='';go('home')}
+async function doLogin(){const u=$('#loginUser').value.trim(),p=$('#loginPass').value,users=readJ(USERS_KEY,[]),h=await hashPass(p);const hit=users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.passHash===h);if(!hit||hit.enabled===false){$('#loginMsg').textContent='Username or password is incorrect.';return}sessionUser=hit;$('#welcomeUser').textContent=hit.username+(hit.role==='admin'?' — Admin':'');$('#loginPass').value='';go('home')}
 function logout(){sessionUser=null;showLogin()}
 function renderSectionChecks(){const d=$('#sectionChecks');if(!d)return;const secs=readJ(SECTIONS_KEY,[]);d.innerHTML='<b>Section access</b>'+secs.map(s=>`<label class="sectionPerm"><input type="checkbox" class="newUserSection" value="${esc(s.id)}"><span>${esc(s.name)}</span></label>`).join('')}
 function renderFieldChecks(){const d=$('#fieldChecks');if(!d)return;d.innerHTML=SEARCH_FIELDS.map(f=>`<label><input type="checkbox" class="newUserField" value="${esc(f)}" checked><span>${esc(f)}</span></label>`).join('')}
-function renderUsers(){const d=$('#userList');if(!d)return;const users=readJ(USERS_KEY,[]),secs=readJ(SECTIONS_KEY,[]);d.innerHTML=users.map(u=>`<div class="card"><b>${esc(u.username)}</b> <span class="pill">${esc(u.role)}</span><br><small>Sections: ${esc((u.sections||[]).map(id=>secs.find(s=>s.id===id)?.name||id).join(', ')||'None')}</small><br><small>Find Part fields: ${esc((u.fields||[]).join(', ')||'None')}</small></div>`).join('')}
+function renderUsers(){const d=$('#userList');if(!d)return;const users=readJ(USERS_KEY,[]),secs=readJ(SECTIONS_KEY,[]);d.innerHTML=users.map(u=>`<div class="card"><b>${esc(u.username)}</b> <span class="pill">${esc(u.role)}</span> ${u.enabled===false?'<span class="pill">DISABLED</span>':''}<br><small>Sections: ${esc((u.sections||[]).map(id=>secs.find(s=>s.id===id)?.name||id).join(', ')||'None')}</small><br><small>Find Part fields: ${esc((u.fields||[]).join(', ')||'None')}</small><button class="editUserBtn secondary" data-user-id="${esc(u.id)}">EDIT USER</button></div>`).join('');$$('.editUserBtn').forEach(b=>b.onclick=()=>openEditUser(b.dataset.userId))}
+
+function renderEditChecks(user){
+  const secs=readJ(SECTIONS_KEY,[]), selected=new Set(user.sections||[]), fields=new Set(user.fields||[]);
+  $('#editSectionChecks').innerHTML='<b>Section access</b>'+secs.map(sec=>`<label class="sectionPerm"><input type="checkbox" class="editUserSection" value="${esc(sec.id)}" ${selected.has(sec.id)?'checked':''}><span>${esc(sec.name)}</span></label>`).join('');
+  $('#editFieldChecks').innerHTML=SEARCH_FIELDS.map(f=>`<label><input type="checkbox" class="editUserField" value="${esc(f)}" ${fields.has(f)?'checked':''}><span>${esc(f)}</span></label>`).join('');
+}
+function openEditUser(id){
+  const user=readJ(USERS_KEY,[]).find(u=>u.id===id);if(!user){toast('User not found');return}
+  $('#editUserId').value=user.id;$('#editUsername').value=user.username;$('#editRole').value=user.role;$('#editEnabled').checked=user.enabled!==false;$('#editUserTitle').textContent='EDIT USER — '+user.username;$('#editUserMsg').textContent='';renderEditChecks(user);go('edituser');
+}
+$('#saveUserChanges').onclick=()=>{
+  const id=$('#editUserId').value,users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===id);if(idx<0){toast('User not found');return}
+  const role=$('#editRole').value,enabled=$('#editEnabled').checked;
+  const otherActiveAdmins=users.filter((u,i)=>i!==idx&&u.role==='admin'&&u.enabled!==false).length;
+  if(users[idx].role==='admin'&&users[idx].enabled!==false&&(role!=='admin'||!enabled)&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
+  users[idx]={...users[idx],role,enabled,sections:[...$$('.editUserSection:checked')].map(x=>x.value),fields:[...$$('.editUserField:checked')].map(x=>x.value)};
+  writeJ(USERS_KEY,users);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('users');
+};
+
 function renderSections(){const d=$('#sectionList');if(!d)return;const secs=readJ(SECTIONS_KEY,[]);d.innerHTML=secs.map(s=>`<div class="card"><b>${esc(s.name)}</b><br><small>${s.sells?'Sells parts — Buy and Sell prices available':'Does not sell parts — Sell price not required'}</small></div>`).join('')}
 function setupAdminScreens(){renderSectionChecks();renderFieldChecks();renderUsers();renderSections()}
 $('#createAdmin').onclick=createFirstAdmin;$('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;
 $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if(!name){toast('Enter section name');return}const secs=readJ(SECTIONS_KEY,[]);if(secs.some(s=>s.name.toLowerCase()===name.toLowerCase())){toast('Section already exists');return}const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36);secs.push({id,name,sells:$('#sectionSells').checked});writeJ(SECTIONS_KEY,secs);$('#newSectionName').value='';$('#sectionSells').checked=false;setupAdminScreens();toast('SECTION CREATED ✓')};
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim();if(!name){$('#userMsg').textContent='Enter a username.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const temp='Temp'+Math.floor(1000+Math.random()*9000);const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#userMsg').textContent=`User created. Temporary password: ${temp} — copy this now for the user.`;renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
-const oldGo=go;go=function(id){if((id==='users'||id==='sections')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens()};
+const oldGo=go;go=function(id){if((id==='users'||id==='sections'||id==='edituser')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens()};
 // Start at Login instead of bypassing authentication.
 showLogin();

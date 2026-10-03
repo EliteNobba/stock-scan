@@ -1,25 +1,27 @@
-STOCK SCAN — v1.14
+STOCK SCAN — v1.18
 
-Recovery build focused on the core scan path.
+Foundation build: editable Admin user permissions.
 
-Fixes:
-- Repairs the JavaScript syntax error in v1.14 that prevented the Home SCAN PARTS button and other controls from working.
-- Preserves the existing scanner implementation.
-- Preserves the Add to Scan green confirmation logic.
-- Uses a new v1.14 service-worker/cache identity.
+NEW IN v1.18
+- Admin can open USERS & PERMISSIONS and tap EDIT USER on an existing account.
+- Admin can change Normal/Admin role.
+- Admin can enable/disable an account.
+- Admin can change section access at any time.
+- Admin can change the tick-box list controlling which Find Part fields the user may see.
+- Safety check prevents disabling/demoting the last enabled Admin.
+- Existing v1.17 device-local users/sections are retained.
+- Service worker now correctly caches app.js and uses the v1.18 cache identity.
+- Core v1.16 scan/photo workflow is unchanged.
 
-TEST FIRST:
-1. Confirm STOCK SCAN — v1.14.
-2. Tap SCAN PARTS.
-3. Tap NEW SCAN.
-4. Scan a barcode.
-5. Tap ADD TO SCAN and confirm the green ITEM ADDED TO SCAN box appears.
+IMPORTANT
+Authentication/permissions are still a device-local prototype. Do not use a real work password yet. Production employee security will be enforced by the future private backend.
 
-
-v1.14: Fixed SCAN ANOTHER ITEM being blocked when browser localStorage is over quota. The current scan can continue in memory even if persistence fails. Scanner decoding code unchanged.
-
-
-v1.17: Fixed full-size photo viewer by adding the missing viewer dialog to index.html and making thumbnails real tappable buttons with direct event handlers. Core scanner and IndexedDB photo storage unchanged.
-
-
-v1.17: Added device-local prototype Login, Admin Users/Permissions and dynamic Sections. Renamed versioned JavaScript to app.js. Production authentication is not yet backend-secured.
+WHAT TO TEST
+1. Confirm STOCK SCAN — v1.18.
+2. Login as Admin.
+3. SETTINGS > USERS & PERMISSIONS.
+4. Tap EDIT USER on a test user.
+5. Change section tick boxes and Find Part field tick boxes; SAVE CHANGES.
+6. Reopen that user and confirm the choices stayed saved.
+7. Disable a test normal account and confirm it cannot log in.
+8. Confirm SCAN PARTS > NEW SCAN still reads a barcode and Add to Scan still works.
