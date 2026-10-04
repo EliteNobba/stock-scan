@@ -1,20 +1,22 @@
-STOCK SCAN — v1.43
+STOCK SCAN — v1.44
 
-REVIEW HISTORY ORDER
-- Admin can switch Review History between Newest first and Oldest first.
-- History filtering still works together with the selected order.
-- Edit Notes, Decision Notes and exact old → new values remain.
+ORIGINAL SUBMISSION DETAILS
+- Admin Re-review/Edit now clearly shows the original submitter.
+- Shows original submission date/time.
+- Shows the part's section alongside the original submission details.
+- This remains visible even after later edits or approval/rejection changes.
+- Existing Review History filters/order, Edit Notes, Decision Notes and old → new values remain.
 - SCAN PARTS remains visible to Normal Users during development/testing.
 - Final production build: hide/remove SCAN PARTS for Normal Users.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.43 and ✓ Up to date.
-2. Admin > REVIEWED PARTS > open a record with several history entries.
-3. Confirm default History Order is Newest first.
-4. Change to Oldest first and confirm the entries reverse order.
-5. Select Field edits while Oldest first is selected.
-6. Confirm only field edits show and remain oldest first.
-7. Select Approval / rejection changes and confirm ordering/filter still works.
-8. Confirm Edit Notes and Decision Notes still display.
+1. Confirm STOCK SCAN — v1.44 and ✓ Up to date.
+2. Admin > REVIEWED PARTS > open a reviewed part.
+3. Confirm Original Submission section appears.
+4. Confirm Submitted by shows the original Normal User.
+5. Confirm submission date/time appears.
+6. Confirm section appears.
+7. Make a re-review edit and reopen; Original Submission should still show the original user/date.
+8. Check Review History filter/order still works.
 9. Normal User: SCAN PARTS remains visible for testing.
 10. Quick barcode > ADD TO SCAN regression.
