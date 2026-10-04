@@ -1,22 +1,19 @@
-STOCK SCAN — v1.32
+STOCK SCAN — v1.33
 
-PENDING REVIEW PERMISSION / EDIT FIX
-- Normal Users no longer see Reassign Section, APPROVE or REJECT.
-- Normal Users can still edit/delete only their own pending submissions.
-- Admin can now edit Description, Photo, Barcode, Suggested Part No, Category and Location while reviewing.
-- Admin can change Reassign Section.
-- Admin SAVE CHANGES saves edits/section, closes the review and returns to Pending Parts.
-- SAVE CHANGES does NOT approve the part; it remains pending until Admin explicitly presses APPROVE.
-- Admin APPROVE / REJECT remain separate actions.
+NORMAL USER REVIEW CONTROL FIX
+- Fixed APPROVE and REJECT still being visible to Normal Users.
+- Root cause: existing button CSS could override the HTML hidden attribute.
+- Role-specific controls now use both role logic and explicit display:none.
+- Added global [hidden] protection so hidden controls cannot be made visible by normal button styling.
+- Admin still sees APPROVE and REJECT.
+- Normal User still sees SAVE CHANGES and DELETE PENDING PART for their own submission.
+- Reassign Section remains Admin-only.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.32 and ✓ Up to date.
-2. Normal User > own Pending Part > VIEW / EDIT.
-3. Confirm NO Reassign Section, APPROVE or REJECT controls are visible.
-4. Edit a field and SAVE CHANGES; confirm it returns to Pending Parts and stays pending.
-5. Admin > same pending part > REVIEW.
-6. Confirm Admin can edit fields/photo and sees Reassign Section + APPROVE + REJECT.
-7. Change section and another field > SAVE CHANGES.
-8. Confirm review closes, item remains Pending, reopen and verify both changes saved.
-9. Press APPROVE and confirm it leaves Pending.
-10. Quick barcode > ADD TO SCAN regression.
+1. Confirm STOCK SCAN — v1.33 and ✓ Up to date.
+2. Login Normal User > PENDING PARTS > VIEW / EDIT.
+3. Confirm NO Reassign Section, APPROVE or REJECT controls are visible. Stop if any are visible.
+4. Confirm SAVE CHANGES and DELETE PENDING PART are still visible.
+5. Login Admin > open same pending part.
+6. Confirm Reassign Section, SAVE CHANGES, APPROVE and REJECT are visible.
+7. Quick barcode > ADD TO SCAN regression.
