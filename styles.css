@@ -11,3 +11,6 @@
 select{width:100%;box-sizing:border-box;padding:12px;margin-top:6px;margin-bottom:12px;border:1px solid #bbb;border-radius:8px;background:#fff;font-size:16px}.checkGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0 14px}.checkGrid label,.sectionPerm{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid #ddd;border-radius:8px}.checkGrid input,.sectionPerm input{width:auto;margin:0}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#eee;font-size:12px;margin:2px}
 
 .headerUpdate{width:auto;display:inline-block;margin:8px 0 0;padding:7px 10px;font-size:12px;background:#fff;color:#1f4e79;border-radius:8px}
+
+header small{display:block;margin-bottom:14px}
+.headerUpdate{margin-top:6px!important;margin-bottom:8px!important}
