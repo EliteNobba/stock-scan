@@ -25,3 +25,6 @@ header small{display:block;margin-bottom:14px}
 .pendingThumbSlot{flex:0 0 72px;min-height:72px}
 
 [hidden]{display:none !important;}
+
+.auditEntry{padding:10px 0;border-top:1px solid #ddd}
+.auditEntry:first-of-type{margin-top:8px}
