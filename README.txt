@@ -1,22 +1,20 @@
-STOCK SCAN — v1.46
+STOCK SCAN — v1.47
 
-CURRENT REVIEW STATUS
-- Admin Re-review/Edit now has a prominent CURRENT STATUS card.
-- Clearly shows APPROVED or REJECTED.
-- Shows the most recent review/change date/time and Admin where available.
-- Original Submission snapshot remains separate and unchanged.
-- Detailed Review History, notes, filters/order and old → new values remain.
+REVIEW ACTIVITY SUMMARY
+- Admin Re-review/Edit now shows a compact Review Activity summary.
+- Displays total audit events, number of field edits and number of approval/rejection decision changes.
+- Current Status, Original Submission, detailed history, filters/order and notes remain unchanged.
 - SCAN PARTS remains visible to Normal Users during development/testing.
 - Final production build: hide/remove SCAN PARTS for Normal Users.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.46 and ✓ Up to date.
-2. Admin > REVIEWED PARTS > open an Approved record.
-3. Confirm CURRENT STATUS: APPROVED is clearly visible.
-4. Open a Rejected record and confirm CURRENT STATUS: REJECTED.
-5. Change an Approved record to Rejected.
-6. Reopen it and confirm CURRENT STATUS changed to REJECTED and shows latest Admin/date.
-7. Confirm Original Submission values remain unchanged.
-8. Confirm Review History still records the decision change/note.
+1. Confirm STOCK SCAN — v1.47 and ✓ Up to date.
+2. Admin > REVIEWED PARTS > open a record with history.
+3. Confirm Review Activity appears above Review History controls.
+4. Confirm Total events, Field edits and Decision changes match the visible history.
+5. Make one field edit, reopen and confirm Field edits increases by 1.
+6. Reverse Approved/Rejected, reopen and confirm Decision changes increases by 1.
+7. Confirm Current Status and Original Submission remain correct.
+8. Test Review History filters/order.
 9. Normal User: SCAN PARTS remains visible for testing.
 10. Quick barcode > ADD TO SCAN regression.

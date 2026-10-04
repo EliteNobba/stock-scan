@@ -33,7 +33,7 @@ function renderDataStatus(){const meta=JSON.parse(localStorage.getItem('partsMet
 $('#partsFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#partsStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});const out=[];for(let r=1;r<rows.length;r++){const a=rows[r];const barcode=String(a[4]??'').trim();if(!barcode)continue;out.push({part:String(a[1]??'').trim(),supplier:String(a[2]??'').trim(),barcode,description:String(a[6]??'').trim(),price:Number(a[10])||0})}parts=out;localStorage.setItem('partsIndex',JSON.stringify(parts));localStorage.setItem('partsMeta',JSON.stringify({name:f.name,count:parts.length,loaded:new Date().toISOString()}));renderDataStatus();toast(parts.length+' parts loaded')}catch(err){$('#partsStatus').textContent='Could not read file: '+err.message}};
 $('#lomagFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#lomagStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(!rows.length)throw Error('File is empty');const headers=rows[0].map(x=>String(x).toLowerCase().trim()),bi=headers.findIndex(x=>x.includes('barcode')),qi=headers.findIndex(x=>x.includes('qty')||x.includes('quantity'));if(bi<0||qi<0)throw Error('Could not find Barcode and Quantity columns');const s={id:Date.now(),name:f.name.replace(/\.xlsx?$/i,''),created:new Date().toISOString(),source:'LoMag',items:[]};for(let r=1;r<rows.length;r++){const code=String(rows[r][bi]??'').trim(),qty=Number(rows[r][qi])||0;if(!code||qty<=0)continue;const p=lookupBarcode(code)||{};s.items.push({barcode:code,qty,part:p.part||'',description:p.description||'Unmatched item',supplier:p.supplier||'',price:p.price||0,photo:'',added:new Date().toISOString()})}s.savedAt=new Date().toISOString();saved.unshift(s);localStorage.setItem('savedScans',JSON.stringify(saved));$('#lomagStatus').textContent=`${f.name} • ${s.items.length} item line(s) imported`;toast('LoMag scan imported')}catch(err){$('#lomagStatus').textContent='Could not read file: '+err.message}};
 $('#doPartSearch').onclick=()=>{const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}const hits=parts.filter(p=>p.part.toLowerCase().includes(q)||p.description.toLowerCase().includes(q)||p.barcode.includes(q)).slice(0,50);d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part)}</b><br>${esc(p.description)}<br><small>${esc(p.supplier)} • ${esc(p.barcode)}</small></div>`).join(''):'<p>No matches.</p>'};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.46');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.47');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -213,7 +213,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.46';
+const APP_VERSION='1.47';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
@@ -346,6 +346,14 @@ function renderOriginalSubmission(x){
  </div>`;
 }
 
+function renderReviewAuditSummary(x){
+ const d=$('#reviewAuditSummary');if(!d)return;
+ const h=x.reviewHistory||[];
+ const edits=h.filter(e=>e.action==='details-edit').length;
+ const decisions=h.filter(e=>e.action==='decision-change').length;
+ d.innerHTML=`<div class="card"><b>Review Activity</b><br><small>${h.length} total event${h.length===1?'':'s'} · ${edits} field edit${edits===1?'':'s'} · ${decisions} decision change${decisions===1?'':'s'}</small></div>`;
+}
+
 function renderReviewAuditHistory(x){
  const d=$('#reviewAuditHistory');if(!d)return;
  let h=[...(x.reviewHistory||[])];
@@ -379,6 +387,7 @@ window.editReviewedPart=async id=>{
  const secs=readJ(SECTIONS_KEY,[]);$('#editReviewedSection').innerHTML=secs.map(s=>`<option value="${esc(s.id)}" ${s.id===x.sectionId?'selected':''}>${esc(s.name)}</option>`).join('');
  renderReviewedCurrentStatus(x);
  renderOriginalSubmission(x);
+ renderReviewAuditSummary(x);
  renderReviewAuditHistory(x);
  const af=$('#reviewAuditFilter');if(af)af.onchange=()=>renderReviewAuditHistory(x);
  const ao=$('#reviewAuditOrder');if(ao)ao.onchange=()=>renderReviewAuditHistory(x);
