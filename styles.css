@@ -32,3 +32,7 @@ header small{display:block;margin-bottom:14px}
 .auditChange{margin:7px 0 0 10px;padding-left:9px;border-left:3px solid #ddd}
 
 .reviewedSummary{text-align:center}
+
+.reviewedStatus{text-align:center}
+.reviewedStatus.approved{border-left:6px solid #2e7d32}
+.reviewedStatus.rejected{border-left:6px solid #b71c1c}
