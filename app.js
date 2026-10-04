@@ -33,7 +33,7 @@ function renderDataStatus(){const meta=JSON.parse(localStorage.getItem('partsMet
 $('#partsFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#partsStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});const out=[];for(let r=1;r<rows.length;r++){const a=rows[r];const barcode=String(a[4]??'').trim();if(!barcode)continue;out.push({part:String(a[1]??'').trim(),supplier:String(a[2]??'').trim(),barcode,description:String(a[6]??'').trim(),price:Number(a[10])||0})}parts=out;localStorage.setItem('partsIndex',JSON.stringify(parts));localStorage.setItem('partsMeta',JSON.stringify({name:f.name,count:parts.length,loaded:new Date().toISOString()}));renderDataStatus();toast(parts.length+' parts loaded')}catch(err){$('#partsStatus').textContent='Could not read file: '+err.message}};
 $('#lomagFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#lomagStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(!rows.length)throw Error('File is empty');const headers=rows[0].map(x=>String(x).toLowerCase().trim()),bi=headers.findIndex(x=>x.includes('barcode')),qi=headers.findIndex(x=>x.includes('qty')||x.includes('quantity'));if(bi<0||qi<0)throw Error('Could not find Barcode and Quantity columns');const s={id:Date.now(),name:f.name.replace(/\.xlsx?$/i,''),created:new Date().toISOString(),source:'LoMag',items:[]};for(let r=1;r<rows.length;r++){const code=String(rows[r][bi]??'').trim(),qty=Number(rows[r][qi])||0;if(!code||qty<=0)continue;const p=lookupBarcode(code)||{};s.items.push({barcode:code,qty,part:p.part||'',description:p.description||'Unmatched item',supplier:p.supplier||'',price:p.price||0,photo:'',added:new Date().toISOString()})}s.savedAt=new Date().toISOString();saved.unshift(s);localStorage.setItem('savedScans',JSON.stringify(saved));$('#lomagStatus').textContent=`${f.name} • ${s.items.length} item line(s) imported`;toast('LoMag scan imported')}catch(err){$('#lomagStatus').textContent='Could not read file: '+err.message}};
 $('#doPartSearch').onclick=()=>{const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}const hits=parts.filter(p=>p.part.toLowerCase().includes(q)||p.description.toLowerCase().includes(q)||p.barcode.includes(q)).slice(0,50);d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part)}</b><br>${esc(p.description)}<br><small>${esc(p.supplier)} • ${esc(p.barcode)}</small></div>`).join(''):'<p>No matches.</p>'};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.27');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.28');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -213,11 +213,24 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens()};
-const APP_VERSION='1.27';
+const APP_VERSION='1.28';
 function setUpdateStatus(message){
  const a=$('#updateStatus'),b=$('#userUpdateStatus');if(a)a.textContent=message;if(b)b.textContent=message;
 }
+let availableUpdateVersion=null;
 function setHeaderUpdateStatus(message){const h=$('#headerUpdateStatus');if(h)h.textContent=message}
+function setHeaderUpdateButton(updateAvailable=false){
+ const b=$('#headerUpdate');if(!b)return;
+ b.textContent=updateAvailable?'UPDATE':'↻ CHECK UPDATE';
+ b.dataset.mode=updateAvailable?'update':'check';
+}
+async function installAvailableUpdate(){
+ if(!availableUpdateVersion)return checkForUpdate(true,'header');
+ setHeaderUpdateStatus(`Updating to v${availableUpdateVersion}…`);
+ const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('stock-scan-')).map(k=>caches.delete(k)));
+ if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.update()))}
+ location.replace('./index.html?updated='+Date.now());
+}
 function compareVersions(a,b){
  const aa=String(a).trim().split('.').map(n=>parseInt(n,10)||0),bb=String(b).trim().split('.').map(n=>parseInt(n,10)||0);
  for(let i=0;i<Math.max(aa.length,bb.length);i++){const x=aa[i]||0,y=bb[i]||0;if(x>y)return 1;if(x<y)return -1}
@@ -239,21 +252,22 @@ async function checkForUpdate(manual=true,source='auto'){
  try{
   const remote=await fetchPublishedVersion(),cmp=compareVersions(remote,APP_VERSION);
   if(cmp>0){
-   // Never interrupt the user with an automatic update prompt.
-   setUpdateStatus(`NEW VERSION AVAILABLE — v${remote}`);setHeaderUpdateStatus(`Update available — v${remote}`);
+   availableUpdateVersion=remote;
+   setUpdateStatus(`NEW VERSION AVAILABLE — v${remote}`);setHeaderUpdateStatus(`Update available — v${remote}`);setHeaderUpdateButton(true);
   }else{
+   availableUpdateVersion=null;setHeaderUpdateButton(false);
    // Same or older published version means this running build is current; never offer a downgrade.
    setUpdateStatus(`✓ v${APP_VERSION} IS UP TO DATE`);setHeaderUpdateStatus('✓ Up to date');
    if(manual&&source==='settings')toast(`v${APP_VERSION} IS UP TO DATE ✓`);
   }
  }catch(e){
-  setUpdateStatus(`UPDATE CHECK FAILED — current v${APP_VERSION}`);setHeaderUpdateStatus('Check failed');
+  setUpdateStatus(`UPDATE CHECK FAILED — current v${APP_VERSION}`);setHeaderUpdateStatus('Check failed');if(!availableUpdateVersion)setHeaderUpdateButton(false);
   if(manual&&source==='settings')toast('UPDATE CHECK FAILED');
  }
 }
 $('#checkUpdate').onclick=()=>checkForUpdate(true,'settings');
 $('#userCheckUpdate').onclick=()=>checkForUpdate(true,'settings');
-$('#headerUpdate').onclick=()=>checkForUpdate(true,'header');
+$('#headerUpdate').onclick=()=>{if($('#headerUpdate').dataset.mode==='update')installAvailableUpdate();else checkForUpdate(true,'header')};
 $('#homeSettingsBtn').onclick=()=>{if(sessionUser?.role==='admin')go('adminsettings');else{const n=$('#userSettingsName');if(n)n.textContent=sessionUser?.username||'';go('usersettings')}};
 $('#userChangePassword').onclick=()=>{if(!sessionUser)return;$('#forcedNewPass').value='';$('#forcedConfirmPass').value='';$('#forcedPassMsg').textContent='';go('changepassword')};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate(false,'auto')});
