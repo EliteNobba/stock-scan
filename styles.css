@@ -17,3 +17,5 @@ header small{display:block;margin-bottom:14px}
 
 .headerUpdateRow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
 .headerUpdateStatus{display:inline-block;margin:0!important;font-size:11px;opacity:.95;white-space:nowrap}
+
+#homePendingBtn:not([hidden]){display:block}.buttonRow{display:flex;gap:8px}.buttonRow button{flex:1}

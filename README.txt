@@ -1,20 +1,25 @@
-STOCK SCAN — v1.28
+STOCK SCAN — v1.29
 
-UPDATE BUTTON BEHAVIOUR
-- If the running app is current, the top button reads CHECK UPDATE and status reads ✓ Up to date.
-- If a newer published version is detected automatically, the top button changes to UPDATE.
-- The status beside it shows Update available — vX.
-- Pressing UPDATE now performs the update directly; there is no need to press CHECK UPDATE first.
-- After reload, when running and published versions match, the button returns to CHECK UPDATE and status becomes ✓ Up to date.
-- No automatic popup interrupts the user.
-
-IMPORTANT DEPLOYMENT
-Upload/replace ALL files from the v1.28 package, not only version.json. In particular replace index.html, app.js, sw.js and version.json.
+NEW: ADD PART -> ADMIN APPROVAL FOUNDATION
+- Home now includes ADD A PART.
+- New part submission requires Description and Photo.
+- Optional Barcode, Suggested Part No, Category and Location.
+- Submission records who submitted it, date/time and section automatically.
+- Submission goes to a Pending Parts queue; it does NOT directly change live part data.
+- Admin Home shows PENDING PARTS and number waiting.
+- Admin can review the submitted photo/details, reassign the section, APPROVE or REJECT.
+- Approved/rejected prototype history retains submitter and reviewer attribution.
+- This approval queue is still device-local prototype storage until the private shared backend is built.
+- v1.28 updater and stable barcode/photo scan workflow retained.
 
 WHAT TO TEST
-1. Upload ALL v1.28 files.
-2. Confirm heading says STOCK SCAN — v1.28.
-3. It should settle on CHECK UPDATE + ✓ Up to date.
-4. Press CHECK UPDATE: Checking… then ✓ Up to date.
-5. Screen off/on: still no popup.
-6. Quick barcode > ADD TO SCAN.
+1. Confirm STOCK SCAN — v1.29 and updater says ✓ Up to date.
+2. Login Normal User. Press ADD A PART.
+3. Try submit without Description/Photo: it must refuse.
+4. Add Description + Photo, choose section, optionally add barcode/category/location, SUBMIT FOR REVIEW.
+5. Login Admin. Home should show PENDING PARTS with 1 waiting.
+6. Open PENDING PARTS > REVIEW. Confirm submitter name, time, section, photo and entered details.
+7. Reassign section if desired and APPROVE.
+8. Confirm pending count clears.
+9. Repeat one submission and test REJECT.
+10. Quick barcode > ADD TO SCAN regression.
