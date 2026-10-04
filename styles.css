@@ -14,3 +14,6 @@ select{width:100%;box-sizing:border-box;padding:12px;margin-top:6px;margin-botto
 
 header small{display:block;margin-bottom:14px}
 .headerUpdate{margin-top:6px!important;margin-bottom:8px!important}
+
+.headerUpdateRow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.headerUpdateStatus{display:inline-block;margin:0!important;font-size:11px;opacity:.95;white-space:nowrap}
