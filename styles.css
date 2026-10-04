@@ -28,3 +28,5 @@ header small{display:block;margin-bottom:14px}
 
 .auditEntry{padding:10px 0;border-top:1px solid #ddd}
 .auditEntry:first-of-type{margin-top:8px}
+
+.auditChange{margin:7px 0 0 10px;padding-left:9px;border-left:3px solid #ddd}
