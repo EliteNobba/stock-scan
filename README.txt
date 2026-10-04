@@ -1,20 +1,23 @@
-STOCK SCAN — v1.24
+STOCK SCAN — v1.25
 
-UPDATE FIX IN v1.24
-- Update comparison is now directional.
-- A remote version newer than the running app is the only case that shows NEW VERSION AVAILABLE.
-- Same version shows ✓ Up to date.
-- If an old cached/server page reports a lower version, the app remains ✓ Up to date and will never offer a downgrade.
-- Automatic checks on launch/wake now populate the small status beside the top CHECK UPDATE button.
-- Manual top CHECK UPDATE shows Checking… then ✓ Up to date when current.
-- Settings retains its detailed update status.
+UPDATER REBUILD IN v1.25
+- Update checks now use a dedicated version.json file instead of reading the app HTML.
+- version.json is explicitly excluded from the service-worker cache.
+- The running app version is compared numerically against the published version.
+- Same version = ✓ Up to date.
+- Older published/cached version = ✓ Up to date; never downgrade.
+- Only a strictly newer published version can show NEW VERSION AVAILABLE.
+- Header status automatically shows the result after launch/wake.
 - Existing login, permissions, password, scan and photo functions are unchanged.
 
+DEPLOYMENT NOTE
+Upload ALL files from this package to GitHub, including version.json. version.json must always match the released app version.
+
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.24.
-2. Wait briefly after opening: beside top CHECK UPDATE should become ✓ Up to date.
-3. Press top CHECK UPDATE: Checking… then ✓ Up to date.
-4. Settings > CHECK FOR UPDATE: ✓ v1.24 IS UP TO DATE.
-5. Let phone screen turn off, wake it, return to app. It must NOT offer v1.23 or any older version as an update.
-6. Confirm top status returns to ✓ Up to date.
+1. Upload all v1.25 files, including version.json.
+2. Confirm STOCK SCAN — v1.25.
+3. Wait briefly: top status should become ✓ Up to date.
+4. Press top CHECK UPDATE: Checking… then ✓ Up to date. It must NOT offer v1.25 as an update.
+5. Settings > CHECK FOR UPDATE: ✓ v1.25 IS UP TO DATE.
+6. Turn phone screen off, wake it and return. No false update prompt should appear.
 7. Quick regression: barcode > ADD TO SCAN.
