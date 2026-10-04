@@ -33,7 +33,7 @@ function renderDataStatus(){const meta=JSON.parse(localStorage.getItem('partsMet
 $('#partsFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#partsStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});const out=[];for(let r=1;r<rows.length;r++){const a=rows[r];const barcode=String(a[4]??'').trim();if(!barcode)continue;out.push({part:String(a[1]??'').trim(),supplier:String(a[2]??'').trim(),barcode,description:String(a[6]??'').trim(),price:Number(a[10])||0})}parts=out;localStorage.setItem('partsIndex',JSON.stringify(parts));localStorage.setItem('partsMeta',JSON.stringify({name:f.name,count:parts.length,loaded:new Date().toISOString()}));renderDataStatus();toast(parts.length+' parts loaded')}catch(err){$('#partsStatus').textContent='Could not read file: '+err.message}};
 $('#lomagFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#lomagStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(!rows.length)throw Error('File is empty');const headers=rows[0].map(x=>String(x).toLowerCase().trim()),bi=headers.findIndex(x=>x.includes('barcode')),qi=headers.findIndex(x=>x.includes('qty')||x.includes('quantity'));if(bi<0||qi<0)throw Error('Could not find Barcode and Quantity columns');const s={id:Date.now(),name:f.name.replace(/\.xlsx?$/i,''),created:new Date().toISOString(),source:'LoMag',items:[]};for(let r=1;r<rows.length;r++){const code=String(rows[r][bi]??'').trim(),qty=Number(rows[r][qi])||0;if(!code||qty<=0)continue;const p=lookupBarcode(code)||{};s.items.push({barcode:code,qty,part:p.part||'',description:p.description||'Unmatched item',supplier:p.supplier||'',price:p.price||0,photo:'',added:new Date().toISOString()})}s.savedAt=new Date().toISOString();saved.unshift(s);localStorage.setItem('savedScans',JSON.stringify(saved));$('#lomagStatus').textContent=`${f.name} • ${s.items.length} item line(s) imported`;toast('LoMag scan imported')}catch(err){$('#lomagStatus').textContent='Could not read file: '+err.message}};
 $('#doPartSearch').onclick=()=>{const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}const hits=parts.filter(p=>p.part.toLowerCase().includes(q)||p.description.toLowerCase().includes(q)||p.barcode.includes(q)).slice(0,50);d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part)}</b><br>${esc(p.description)}<br><small>${esc(p.supplier)} • ${esc(p.barcode)}</small></div>`).join(''):'<p>No matches.</p>'};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.25');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.26');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -239,13 +239,8 @@ async function checkForUpdate(manual=true,source='auto'){
  try{
   const remote=await fetchPublishedVersion(),cmp=compareVersions(remote,APP_VERSION);
   if(cmp>0){
+   // Never interrupt the user with an automatic update prompt.
    setUpdateStatus(`NEW VERSION AVAILABLE — v${remote}`);setHeaderUpdateStatus(`Update available — v${remote}`);
-   if(confirm(`NEW VERSION AVAILABLE — v${remote}\n\nUpdate now?`)){
-    setHeaderUpdateStatus('Updating…');setUpdateStatus(`Updating to v${remote}…`);
-    const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('stock-scan-')).map(k=>caches.delete(k)));
-    if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(reg=>reg.update()))}
-    location.replace('./index.html?updated='+Date.now());
-   }
   }else{
    // Same or older published version means this running build is current; never offer a downgrade.
    setUpdateStatus(`✓ v${APP_VERSION} IS UP TO DATE`);setHeaderUpdateStatus('✓ Up to date');
