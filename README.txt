@@ -1,20 +1,16 @@
-STOCK SCAN — v1.26
+STOCK SCAN — v1.27
 
-UPDATER FIX
-- Removed every automatic UPDATE NOW confirmation from the updater.
-- Opening or waking the app performs a silent status check only.
-- If current: header shows ✓ Up to date.
-- If a genuinely newer published version exists: header shows Update available — vX.
-- CHECK UPDATE never creates a popup.
-- Restored the small header update-status element beside CHECK UPDATE.
-- version.json remains the dedicated, uncached published-version source.
-- Existing scan/photo/login/permissions functions remain unchanged.
+CRITICAL UPDATE FIX
+- Corrected the internal APP_VERSION runtime constant. It had incorrectly remained at 1.22 even though the visible header/version.json showed newer versions.
+- Header, runtime APP_VERSION, version.json and service worker are now all v1.27.
+- No automatic update popup.
+- Same published/running version displays ✓ Up to date.
 
 WHAT TO TEST
-1. Upload ALL v1.26 files including version.json.
-2. Confirm STOCK SCAN — v1.26.
-3. Wait after opening: no update popup. Header should show ✓ Up to date.
-4. Press top CHECK UPDATE: Checking… then ✓ Up to date, with no popup.
-5. Turn screen off, wake and return: no popup; header returns to ✓ Up to date.
-6. Settings > CHECK FOR UPDATE should say ✓ v1.26 IS UP TO DATE.
-7. Quick barcode > ADD TO SCAN regression.
+1. Upload ALL v1.27 files including version.json.
+2. Confirm STOCK SCAN — v1.27.
+3. Wait: beside CHECK UPDATE must show ✓ Up to date.
+4. Press CHECK UPDATE: Checking… then ✓ Up to date.
+5. Settings check must say ✓ v1.27 IS UP TO DATE.
+6. Screen off/on: no popup and ✓ Up to date.
+7. Quick barcode > ADD TO SCAN.
