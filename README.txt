@@ -1,21 +1,22 @@
-STOCK SCAN — v1.35
+STOCK SCAN — v1.36
 
-NEW: RE-REVIEW / EDIT REVIEWED PARTS
-- Admin can open an already APPROVED or REJECTED submission from Reviewed Parts.
-- RE-REVIEW / EDIT allows correction of Description, Photo, Barcode, Suggested Part No, Category, Location and Section.
-- Saving does not change the Approved/Rejected status; it corrects the reviewed record.
-- Original submitter and original submission time remain unchanged.
-- Each re-review records who made the correction, when, and a snapshot of the previous field values for future audit/history use.
-- Normal Users cannot access re-review/edit.
-- Existing pending approval workflow retained.
+NEW: CHANGE A REVIEWED DECISION
+- Re-review still has SAVE CHANGES for correcting fields/photo/section without changing status.
+- If the reviewed part is APPROVED, Admin sees a REJECT button at the bottom.
+- If the reviewed part is REJECTED, Admin sees an APPROVE button at the bottom.
+- Changing the decision asks for confirmation.
+- Decision changes are recorded in reviewHistory with Admin, date/time, previous status and new status.
+- Original submitter/submission details remain intact.
+- Admin-only Reviewed Parts security retained.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.35 and ✓ Up to date.
-2. Admin > REVIEWED PARTS > choose an APPROVED item > RE-REVIEW / EDIT.
-3. Change Description, another field and Section > SAVE CHANGES.
-4. Reopen it and confirm changes stayed and status is still APPROVED.
-5. Change its photo > SAVE > reopen and confirm photo stayed.
-6. Repeat with a REJECTED item and confirm status remains REJECTED.
-7. Login Normal User and confirm REVIEWED PARTS is still unavailable.
-8. Quick pending-part Approve/Reject regression.
-9. Quick barcode > ADD TO SCAN regression.
+1. Confirm STOCK SCAN — v1.36 and ✓ Up to date.
+2. Admin > REVIEWED PARTS > open an APPROVED part > RE-REVIEW / EDIT.
+3. Confirm SAVE CHANGES is still present and a REJECT button appears.
+4. Change a field > SAVE CHANGES; confirm status remains APPROVED.
+5. Reopen > press REJECT > confirm prompt > confirm item now shows REJECTED.
+6. Reopen that same item > confirm button now says APPROVE.
+7. Press APPROVE > confirm prompt > confirm item now shows APPROVED.
+8. Open an originally REJECTED item and confirm it offers APPROVE.
+9. Normal User: confirm REVIEWED PARTS is unavailable.
+10. Quick barcode > ADD TO SCAN regression.
