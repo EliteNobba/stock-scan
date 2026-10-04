@@ -1,27 +1,28 @@
-STOCK SCAN — v1.18
+STOCK SCAN — v1.19
 
-Foundation build: editable Admin user permissions.
+Foundation build: Admin Delete User.
 
-NEW IN v1.18
-- Admin can open USERS & PERMISSIONS and tap EDIT USER on an existing account.
-- Admin can change Normal/Admin role.
-- Admin can enable/disable an account.
-- Admin can change section access at any time.
-- Admin can change the tick-box list controlling which Find Part fields the user may see.
-- Safety check prevents disabling/demoting the last enabled Admin.
-- Existing v1.17 device-local users/sections are retained.
-- Service worker now correctly caches app.js and uses the v1.18 cache identity.
-- Core v1.16 scan/photo workflow is unchanged.
+NEW IN v1.19
+- Admin can delete an existing user from EDIT USER.
+- DELETE USER requires confirmation.
+- The currently logged-in account cannot delete itself.
+- The last enabled Admin is protected from deletion.
+- Existing editable roles, section access and Find Part field permissions remain.
+- Core v1.16 scan/photo workflow remains unchanged.
+- Permanent app.js naming continues.
 
 IMPORTANT
-Authentication/permissions are still a device-local prototype. Do not use a real work password yet. Production employee security will be enforced by the future private backend.
+Authentication/permissions are still a device-local prototype. Do not use a real work password yet.
+Production employee security, shared accounts, invitations and audit history will be enforced by the future private backend.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.18.
+1. Confirm STOCK SCAN — v1.19.
 2. Login as Admin.
 3. SETTINGS > USERS & PERMISSIONS.
-4. Tap EDIT USER on a test user.
-5. Change section tick boxes and Find Part field tick boxes; SAVE CHANGES.
-6. Reopen that user and confirm the choices stayed saved.
-7. Disable a test normal account and confirm it cannot log in.
-8. Confirm SCAN PARTS > NEW SCAN still reads a barcode and Add to Scan still works.
+4. Create a disposable Normal User if needed.
+5. EDIT USER > DELETE USER.
+6. Choose Cancel first and confirm the user remains.
+7. Delete again and confirm deletion; user should disappear from the list.
+8. Confirm the deleted username can no longer log in.
+9. Confirm you cannot delete the account currently logged in.
+10. Quick regression: SCAN PARTS > NEW SCAN > barcode > ADD TO SCAN.

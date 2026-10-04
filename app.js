@@ -146,7 +146,7 @@ function getStockOrders(){return parts.map(p=>{const c=stockCfg[stockKey(p)]||{}
 function renderStockOrderSummary(){const el=$('#stocktakeOrderSummary');if(!el)return;const o=getStockOrders();el.innerHTML=o.length?`<div class="card"><b>${o.length} item(s) below minimum</b><br><small>Total units to order: ${o.reduce((n,x)=>n+x.order,0)}</small></div>`:'<div class="card"><small>No shortages calculated yet.</small></div>'}
 $('#createStocktakeOrder').onclick=()=>{const o=getStockOrders();if(!o.length){toast('No items below minimum');return}const by={};o.forEach(x=>{const s=x.p.supplier||'No Supplier';(by[s]??=[]).push(x)});$('#stocktakeOrderSummary').innerHTML='<div class="successBanner"><div class="successTick">✓</div><h2>ORDER LIST CREATED</h2></div>'+Object.entries(by).map(([sup,a])=>`<div class="card"><b>${esc(sup)}</b>${a.map(x=>`<div class="orderLine"><span>${esc(x.p.part||x.p.barcode)}<br><small>${esc(x.p.description||'')}</small></span><b>Qty ${x.order}</b></div>`).join('')}</div>`).join('');toast('ORDER LIST CREATED ✓')};
 
-// ===== v1.18 local UI/data foundation: login, users, sections and result-field permissions =====
+// ===== v1.19 local UI/data foundation: login, users, sections and result-field permissions =====
 // This is intentionally device-local for prototype testing. Production employee security will be backend-enforced.
 const AUTH_KEY='stockscan_auth_v117', USERS_KEY='stockscan_users_v117', SECTIONS_KEY='stockscan_sections_v117';
 const SEARCH_FIELDS=['Part Number','Description','Photo','Barcode','Quantity','Location','Category','Buy Price','Sell Price','Supplier','Minimum Qty','Maximum Qty','Stock History'];
@@ -179,6 +179,17 @@ $('#saveUserChanges').onclick=()=>{
   if(users[idx].role==='admin'&&users[idx].enabled!==false&&(role!=='admin'||!enabled)&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
   users[idx]={...users[idx],role,enabled,sections:[...$$('.editUserSection:checked')].map(x=>x.value),fields:[...$$('.editUserField:checked')].map(x=>x.value)};
   writeJ(USERS_KEY,users);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('users');
+};
+
+$('#deleteUser').onclick=()=>{
+  const id=$('#editUserId').value,users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===id);
+  if(idx<0){toast('User not found');return}
+  const target=users[idx];
+  if(sessionUser?.id===id){$('#editUserMsg').textContent='You cannot delete the account you are currently using.';return}
+  const otherActiveAdmins=users.filter((u,i)=>i!==idx&&u.role==='admin'&&u.enabled!==false).length;
+  if(target.role==='admin'&&target.enabled!==false&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
+  if(!confirm(`Delete user "${target.username}"?\n\nThis removes their Stock Scan login from this device prototype.`))return;
+  users.splice(idx,1);writeJ(USERS_KEY,users);renderUsers();toast('USER DELETED ✓');go('users');
 };
 
 function renderSections(){const d=$('#sectionList');if(!d)return;const secs=readJ(SECTIONS_KEY,[]);d.innerHTML=secs.map(s=>`<div class="card"><b>${esc(s.name)}</b><br><small>${s.sells?'Sells parts — Buy and Sell prices available':'Does not sell parts — Sell price not required'}</small></div>`).join('')}
