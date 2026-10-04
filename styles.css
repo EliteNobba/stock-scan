@@ -19,3 +19,7 @@ header small{display:block;margin-bottom:14px}
 .headerUpdateStatus{display:inline-block;margin:0!important;font-size:11px;opacity:.95;white-space:nowrap}
 
 #homePendingBtn:not([hidden]){display:block}.buttonRow{display:flex;gap:8px}.buttonRow button{flex:1}
+
+.pendingSummary{display:flex;gap:12px;align-items:flex-start}
+.pendingThumb{width:72px;height:72px;object-fit:cover;border-radius:8px;display:block}
+.pendingThumbSlot{flex:0 0 72px;min-height:72px}

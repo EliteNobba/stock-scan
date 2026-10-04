@@ -33,7 +33,7 @@ function renderDataStatus(){const meta=JSON.parse(localStorage.getItem('partsMet
 $('#partsFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#partsStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});const out=[];for(let r=1;r<rows.length;r++){const a=rows[r];const barcode=String(a[4]??'').trim();if(!barcode)continue;out.push({part:String(a[1]??'').trim(),supplier:String(a[2]??'').trim(),barcode,description:String(a[6]??'').trim(),price:Number(a[10])||0})}parts=out;localStorage.setItem('partsIndex',JSON.stringify(parts));localStorage.setItem('partsMeta',JSON.stringify({name:f.name,count:parts.length,loaded:new Date().toISOString()}));renderDataStatus();toast(parts.length+' parts loaded')}catch(err){$('#partsStatus').textContent='Could not read file: '+err.message}};
 $('#lomagFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#lomagStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(!rows.length)throw Error('File is empty');const headers=rows[0].map(x=>String(x).toLowerCase().trim()),bi=headers.findIndex(x=>x.includes('barcode')),qi=headers.findIndex(x=>x.includes('qty')||x.includes('quantity'));if(bi<0||qi<0)throw Error('Could not find Barcode and Quantity columns');const s={id:Date.now(),name:f.name.replace(/\.xlsx?$/i,''),created:new Date().toISOString(),source:'LoMag',items:[]};for(let r=1;r<rows.length;r++){const code=String(rows[r][bi]??'').trim(),qty=Number(rows[r][qi])||0;if(!code||qty<=0)continue;const p=lookupBarcode(code)||{};s.items.push({barcode:code,qty,part:p.part||'',description:p.description||'Unmatched item',supplier:p.supplier||'',price:p.price||0,photo:'',added:new Date().toISOString()})}s.savedAt=new Date().toISOString();saved.unshift(s);localStorage.setItem('savedScans',JSON.stringify(saved));$('#lomagStatus').textContent=`${f.name} • ${s.items.length} item line(s) imported`;toast('LoMag scan imported')}catch(err){$('#lomagStatus').textContent='Could not read file: '+err.message}};
 $('#doPartSearch').onclick=()=>{const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}const hits=parts.filter(p=>p.part.toLowerCase().includes(q)||p.description.toLowerCase().includes(q)||p.barcode.includes(q)).slice(0,50);d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part)}</b><br>${esc(p.description)}<br><small>${esc(p.supplier)} • ${esc(p.barcode)}</small></div>`).join(''):'<p>No matches.</p>'};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.30');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.31');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -212,8 +212,8 @@ $('#createAdmin').onclick=createFirstAdmin;$('#loginBtn').onclick=doLogin;$('#lo
 $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if(!name){toast('Enter section name');return}const secs=readJ(SECTIONS_KEY,[]);if(secs.some(s=>s.name.toLowerCase()===name.toLowerCase())){toast('Section already exists');return}const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36);secs.push({id,name,sells:$('#sectionSells').checked});writeJ(SECTIONS_KEY,secs);$('#newSectionName').value='';$('#sectionSells').checked=false;setupAdminScreens();toast('SECTION CREATED ✓')};
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
-const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='pendingparts'||id==='reviewpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='home')updatePendingBadge()};
-const APP_VERSION='1.30';
+const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='home')updatePendingBadge()};
+const APP_VERSION='1.31';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
@@ -245,18 +245,39 @@ $('#submitPartRequest').onclick=async()=>{
 };
 function updatePendingBadge(){
  const b=$('#homePendingBtn'),t=$('#pendingHomeText');if(!b)return;
- const n=pendingParts().filter(x=>x.status==='pending').length;
- b.hidden=sessionUser?.role!=='admin';if(t)t.textContent=n?`${n} part${n===1?'':'s'} waiting for review`:'No parts waiting for review';
+ const all=pendingParts().filter(x=>x.status==='pending'),mine=all.filter(x=>x.submittedByUserId===sessionUser?.id),n=sessionUser?.role==='admin'?all.length:mine.length;
+ b.hidden=n===0;if(t)t.textContent=n?`${n} part${n===1?'':'s'} waiting for review`:'No parts waiting for review';
 }
-function renderPendingParts(){
- const d=$('#pendingPartsList');if(!d)return;const secs=readJ(SECTIONS_KEY,[]),p=pendingParts().filter(x=>x.status==='pending');
- d.innerHTML=p.length?p.map(x=>`<div class="card"><b>${esc(x.description)}</b><br><small>Submitted by: ${esc(x.submittedByUsername)}<br>Submitted: ${new Date(x.submittedAt).toLocaleString()}<br>Section: ${esc(secs.find(s=>s.id===x.sectionId)?.name||x.sectionId)}</small><button onclick="reviewPendingPart('${x.id}')">REVIEW</button></div>`).join(''):'<div class="card">✓ No parts waiting for review.</div>';
+async function renderPendingParts(){
+ const d=$('#pendingPartsList');if(!d)return;const secs=readJ(SECTIONS_KEY,[]),all=pendingParts().filter(x=>x.status==='pending');
+ const p=sessionUser?.role==='admin'?all:all.filter(x=>x.submittedByUserId===sessionUser?.id);
+ if(!p.length){d.innerHTML='<div class="card">✓ No parts waiting for review.</div>';return}
+ d.innerHTML=p.map(x=>`<div class="card pendingCard" data-pending-id="${esc(x.id)}"><div class="pendingSummary"><span class="pendingThumbSlot"></span><div class="grow"><b>${esc(x.description)}</b><br><small>Submitted by: ${esc(x.submittedByUsername)}<br>Submitted: ${new Date(x.submittedAt).toLocaleString()}<br>Section: ${esc(secs.find(s=>s.id===x.sectionId)?.name||x.sectionId)}</small></div></div><button onclick="reviewPendingPart('${x.id}')">${sessionUser?.role==='admin'?'REVIEW':'VIEW / EDIT'}</button></div>`).join('');
+ for(const x of p){if(!x.photoId)continue;try{const src=await getPhoto(x.photoId),card=d.querySelector(`[data-pending-id="${CSS.escape(x.id)}"] .pendingThumbSlot`);if(src&&card)card.innerHTML=`<img class="pendingThumb" src="${src}" alt="Part photo">`}catch(e){}}
 }
 window.reviewPendingPart=async id=>{
- const x=pendingParts().find(v=>v.id===id);if(!x)return;reviewRequestId=id;const secs=readJ(SECTIONS_KEY,[]);
+ const x=pendingParts().find(v=>v.id===id);if(!x)return;
+ const own=x.submittedByUserId===sessionUser?.id,isAdmin=sessionUser?.role==='admin';if(!isAdmin&&!own){toast('You can only view your own pending parts.');return}
+ reviewRequestId=id;const secs=isAdmin?readJ(SECTIONS_KEY,[]):allowedSectionsForUser();
  let src='';if(x.photoId)try{src=await getPhoto(x.photoId)}catch(e){}
- $('#reviewPartBody').innerHTML=`<div class="card">${src?`<img class="preview" src="${src}" alt="Submitted part photo">`:''}<div class="kv"><b>Description</b><span>${esc(x.description)}</span><b>Submitted by</b><span>${esc(x.submittedByUsername)}</span><b>Submitted</b><span>${new Date(x.submittedAt).toLocaleString()}</span><b>Barcode</b><span>${esc(x.barcode||'—')}</span><b>Suggested Part No</b><span>${esc(x.suggestedPartNo||'—')}</span><b>Category</b><span>${esc(x.category||'—')}</span><b>Location</b><span>${esc(x.location||'—')}</span></div></div>`;
- $('#reviewSection').innerHTML=secs.map(s=>`<option value="${esc(s.id)}" ${s.id===x.sectionId?'selected':''}>${esc(s.name)}</option>`).join('');go('reviewpart');
+ $('#reviewPartBody').innerHTML=`<div class="card">${src?`<img id="pendingEditPreview" class="preview" src="${src}" alt="Submitted part photo">`:'<img id="pendingEditPreview" class="preview" hidden alt="Submitted part photo">'}<div class="kv"><b>Submitted by</b><span>${esc(x.submittedByUsername)}</span><b>Submitted</b><span>${new Date(x.submittedAt).toLocaleString()}</span></div>${isAdmin?`<div class="kv"><b>Description</b><span>${esc(x.description)}</span><b>Barcode</b><span>${esc(x.barcode||'—')}</span><b>Suggested Part No</b><span>${esc(x.suggestedPartNo||'—')}</span><b>Category</b><span>${esc(x.category||'—')}</span><b>Location</b><span>${esc(x.location||'—')}</span></div>`:`<label>Description *<input id="pendingEditDescription" value="${esc(x.description)}"></label><label class="photoBtn">CHANGE PHOTO<input id="pendingEditPhoto" type="file" accept="image/*" capture="environment" hidden></label><label>Barcode<input id="pendingEditBarcode" value="${esc(x.barcode||'')}"></label><label>Suggested Part No<input id="pendingEditPartNo" value="${esc(x.suggestedPartNo||'')}"></label><label>Category<input id="pendingEditCategory" value="${esc(x.category||'')}"></label><label>Location<input id="pendingEditLocation" value="${esc(x.location||'')}"></label><div id="pendingEditMsg" class="small"></div>`}</div>`;
+ $('#reviewSection').innerHTML=secs.map(s=>`<option value="${esc(s.id)}" ${s.id===x.sectionId?'selected':''}>${esc(s.name)}</option>`).join('');
+ $('#reviewSection').disabled=!isAdmin;
+ $('#approvePartRequest').hidden=!isAdmin;$('#rejectPartRequest').hidden=!isAdmin;
+ let save=$('#saveOwnPending'),del=$('#deleteOwnPending');
+ if(!save){save=document.createElement('button');save.id='saveOwnPending';save.textContent='SAVE CHANGES';$('#reviewPartBody').after(save)}
+ if(!del){del=document.createElement('button');del.id='deleteOwnPending';del.className='danger';del.textContent='DELETE PENDING PART';save.after(del)}
+ save.hidden=isAdmin;del.hidden=isAdmin;
+ let newPhoto='';
+ const photo=$('#pendingEditPhoto');if(photo)photo.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{newPhoto=r.result;const im=$('#pendingEditPreview');im.src=newPhoto;im.hidden=false};r.readAsDataURL(f)};
+ save.onclick=async()=>{const p=pendingParts(),i=p.findIndex(v=>v.id===reviewRequestId);if(i<0)return;const y=p[i];if(y.submittedByUserId!==sessionUser?.id)return;
+   const desc=$('#pendingEditDescription').value.trim();if(!desc){$('#pendingEditMsg').textContent='Description is required.';return}
+   if(newPhoto){const nid=await putPhoto(newPhoto);const old=y.photoId;y.photoId=nid;if(old)deletePhoto(old)}
+   Object.assign(y,{description:desc,barcode:$('#pendingEditBarcode').value.trim(),suggestedPartNo:$('#pendingEditPartNo').value.trim(),category:$('#pendingEditCategory').value.trim(),location:$('#pendingEditLocation').value.trim(),sectionId:$('#reviewSection').value,lastEditedAt:new Date().toISOString()});
+   savePending(p);toast('PENDING PART UPDATED ✓');go('pendingparts');
+ };
+ del.onclick=()=>{const p=pendingParts(),i=p.findIndex(v=>v.id===reviewRequestId);if(i<0||p[i].submittedByUserId!==sessionUser?.id)return;if(!confirm('Delete this pending part?'))return;const old=p[i].photoId;p.splice(i,1);savePending(p);if(old)deletePhoto(old);toast('PENDING PART DELETED');go('pendingparts')};
+ go('reviewpart');
 };
 $('#approvePartRequest').onclick=()=>{
  if(sessionUser?.role!=='admin'||!reviewRequestId)return;
@@ -271,7 +292,7 @@ $('#rejectPartRequest').onclick=()=>{
  const history=readJ(APPROVED_PARTS_KEY,[]);history.unshift({...p[i]});writeJ(APPROVED_PARTS_KEY,history);p.splice(i,1);savePending(p);toast('PART REJECTED');renderPendingParts();go('pendingparts');
 };
 $('#homeAddPartBtn').onclick=()=>{prepareAddPart();go('addpartrequest')};
-$('#homePendingBtn').onclick=()=>{if(sessionUser?.role!=='admin'){toast('Admin access required');return}renderPendingParts();go('pendingparts')};
+$('#homePendingBtn').onclick=()=>{renderPendingParts();go('pendingparts')};
 
 function setUpdateStatus(message){
  const a=$('#updateStatus'),b=$('#userUpdateStatus');if(a)a.textContent=message;if(b)b.textContent=message;

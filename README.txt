@@ -1,20 +1,23 @@
-STOCK SCAN — v1.30
+STOCK SCAN — v1.31
 
-CRITICAL CACHE / ASSET FIX
-- Found the root cause of the mixed-version behaviour: index.html and the service worker were still loading app.js/styles.css with the old v1.18 cache URL.
-- This allowed a new heading/version.json to appear while old JavaScript was actually running.
-- index.html, app.js, styles.css, manifest cache references, service worker cache and version.json are now all aligned to v1.30.
-- This should also fix ADD A PART doing nothing, because the v1.29 Add Part JavaScript can now actually load.
-- The v1.29 Add Part -> Pending Admin Approval features are retained.
+PENDING PART IMPROVEMENTS
+- A user can now see their own pending submissions.
+- User can VIEW / EDIT their pending part before Admin approval.
+- Editable fields: Description, Photo, Barcode, Suggested Part No, Category and Location.
+- User can DELETE their own pending submission with confirmation.
+- Users cannot view/edit another user's pending submissions.
+- Pending Parts list now shows a photo thumbnail.
+- Admin still sees all pending submissions and can review, reassign section, approve or reject.
+- v1.30 cache/version alignment retained.
 
 WHAT TO TEST
-1. Upload/replace ALL v1.30 files.
-2. Open app. Confirm heading STOCK SCAN — v1.30.
-3. Top updater must settle on CHECK UPDATE + ✓ Up to date. Stop if it says Update available v1.30.
-4. Login Normal User and press ADD A PART. The Add a Part screen must open. Stop if it does not.
-5. Submit without Description/Photo: it must refuse.
-6. Add Description + Photo and SUBMIT FOR REVIEW.
-7. Login Admin: PENDING PARTS should show 1 waiting.
-8. Review details, then APPROVE.
-9. Repeat and test REJECT.
-10. Quick barcode > ADD TO SCAN.
+1. Confirm STOCK SCAN — v1.31 and ✓ Up to date.
+2. Normal User: submit a new part with photo.
+3. Home should show PENDING PARTS for that user.
+4. Open it: confirm thumbnail appears in the pending list.
+5. VIEW / EDIT: change Description and another field; SAVE CHANGES.
+6. Reopen and confirm changes saved.
+7. CHANGE PHOTO and confirm new photo is retained.
+8. Create another pending part and DELETE PENDING PART; confirm it disappears.
+9. Admin: confirm remaining pending part appears with thumbnail and can still APPROVE/REJECT.
+10. Quick barcode > ADD TO SCAN regression.
