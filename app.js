@@ -36,7 +36,7 @@ $('#lomagFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#lo
 
 let findBarcodeControls=null;
 async function stopFindBarcodeScanner(){
- try{findBarcodeControls?.stop?.();}catch(e){}
+ try{findBarcodeControls?.stop?.();findBarcodeControls?.reset?.();}catch(e){}
  findBarcodeControls=null;
  const box=$('#findBarcodeScanner');if(box)box.hidden=true;
  const v=$('#findBarcodeVideo');if(v){try{v.srcObject?.getTracks?.().forEach(t=>t.stop())}catch(e){}}
@@ -46,14 +46,15 @@ async function startFindBarcodeScanner(){
  if(!box||!video)return;
  box.hidden=false;if(status)status.textContent='Starting camera…';
  try{
-  if(typeof ZXingBrowser==='undefined')throw new Error('Barcode scanner is unavailable');
-  const reader=new ZXingBrowser.BrowserMultiFormatReader();
-  findBarcodeControls=await reader.decodeFromVideoDevice(undefined,video,(result,error,controls)=>{
+  if(typeof ZXing==='undefined'||!ZXing.BrowserMultiFormatReader)throw new Error('Barcode scanner is unavailable');
+  const reader=new ZXing.BrowserMultiFormatReader();
+  findBarcodeControls=reader;
+  await reader.decodeFromVideoDevice(null,video,(result,error)=>{
    if(result){
-    const code=result.getText();
+    const code=result.text||result.getText?.()||String(result);
     $('#partSearch').value=code;
     if(status)status.textContent=`✓ Barcode found: ${code}`;
-    try{controls.stop()}catch(e){}
+    try{reader.reset()}catch(e){}
     findBarcodeControls=null;
     setTimeout(()=>{box.hidden=true;$('#doPartSearch')?.click()},250);
    }
@@ -95,7 +96,7 @@ $('#doPartSearch').onclick=()=>{
  const hits=[...custom,...master].slice(0,50);
  d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part||'—')}</b><br>${esc(p.description||'')}<br><small>${p.barcode?`Barcode: ${esc(p.barcode)} · `:''}${p.supplier?`${esc(p.supplier)} · `:''}${esc(p.source)}</small></div>`).join(''):'<p>No matches.</p>';
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.50');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.51');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -275,7 +276,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.50';
+const APP_VERSION='1.51';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
