@@ -33,7 +33,7 @@ function renderDataStatus(){const meta=JSON.parse(localStorage.getItem('partsMet
 $('#partsFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#partsStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});const out=[];for(let r=1;r<rows.length;r++){const a=rows[r];const barcode=String(a[4]??'').trim();if(!barcode)continue;out.push({part:String(a[1]??'').trim(),supplier:String(a[2]??'').trim(),barcode,description:String(a[6]??'').trim(),price:Number(a[10])||0})}parts=out;localStorage.setItem('partsIndex',JSON.stringify(parts));localStorage.setItem('partsMeta',JSON.stringify({name:f.name,count:parts.length,loaded:new Date().toISOString()}));renderDataStatus();toast(parts.length+' parts loaded')}catch(err){$('#partsStatus').textContent='Could not read file: '+err.message}};
 $('#lomagFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#lomagStatus').textContent='Reading '+f.name+'…';try{const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),ws=wb.Sheets[wb.SheetNames[0]],rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});if(!rows.length)throw Error('File is empty');const headers=rows[0].map(x=>String(x).toLowerCase().trim()),bi=headers.findIndex(x=>x.includes('barcode')),qi=headers.findIndex(x=>x.includes('qty')||x.includes('quantity'));if(bi<0||qi<0)throw Error('Could not find Barcode and Quantity columns');const s={id:Date.now(),name:f.name.replace(/\.xlsx?$/i,''),created:new Date().toISOString(),source:'LoMag',items:[]};for(let r=1;r<rows.length;r++){const code=String(rows[r][bi]??'').trim(),qty=Number(rows[r][qi])||0;if(!code||qty<=0)continue;const p=lookupBarcode(code)||{};s.items.push({barcode:code,qty,part:p.part||'',description:p.description||'Unmatched item',supplier:p.supplier||'',price:p.price||0,photo:'',added:new Date().toISOString()})}s.savedAt=new Date().toISOString();saved.unshift(s);localStorage.setItem('savedScans',JSON.stringify(saved));$('#lomagStatus').textContent=`${f.name} • ${s.items.length} item line(s) imported`;toast('LoMag scan imported')}catch(err){$('#lomagStatus').textContent='Could not read file: '+err.message}};
 $('#doPartSearch').onclick=()=>{const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}const hits=parts.filter(p=>p.part.toLowerCase().includes(q)||p.description.toLowerCase().includes(q)||p.barcode.includes(q)).slice(0,50);d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part)}</b><br>${esc(p.description)}<br><small>${esc(p.supplier)} • ${esc(p.barcode)}</small></div>`).join(''):'<p>No matches.</p>'};
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.13');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.21');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -161,7 +161,7 @@ async function hashPass(v){const b=new TextEncoder().encode(v);const h=await cry
 function authState(){return readJ(AUTH_KEY,null)}
 function showLogin(){stopCamera();$$('.screen').forEach(x=>x.classList.remove('active'));$('#login').classList.add('active');const exists=!!authState();$('#firstRun').hidden=exists;$('#loginBox').hidden=!exists;$('#loginMsg').textContent=''}
 async function createFirstAdmin(){const u=$('#setupUser').value.trim(),p=$('#setupPass').value;if(!u||p.length<4){toast('Enter username and password');return}const passHash=await hashPass(p);writeJ(AUTH_KEY,{created:true});writeJ(SECTIONS_KEY,[{id:'home',name:'Home',sells:false},{id:'work',name:'Work',sells:true}]);writeJ(USERS_KEY,[{id:'u-'+Date.now(),username:u,role:'admin',passHash,sections:['home','work'],fields:[...SEARCH_FIELDS]}]);$('#setupPass').value='';showLogin();toast('ADMIN CREATED ✓')}
-async function doLogin(){const u=$('#loginUser').value.trim(),p=$('#loginPass').value,users=readJ(USERS_KEY,[]),h=await hashPass(p);const hit=users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.passHash===h);if(!hit||hit.enabled===false){$('#loginMsg').textContent='Username or password is incorrect.';return}sessionUser=hit;$('#welcomeUser').textContent=hit.username+(hit.role==='admin'?' — Admin':'');$('#loginPass').value='';if(hit.mustChangePassword){$('#forcedNewPass').value='';$('#forcedConfirmPass').value='';$('#forcedPassMsg').textContent='';go('changepassword')}else go('home')}
+async function doLogin(){const u=$('#loginUser').value.trim(),p=$('#loginPass').value,users=readJ(USERS_KEY,[]),h=await hashPass(p);const hit=users.find(x=>x.username.toLowerCase()===u.toLowerCase()&&x.passHash===h);if(!hit||hit.enabled===false){$('#loginMsg').textContent='Username or password is incorrect.';return}sessionUser=hit;$('#welcomeUser').textContent=hit.username+(hit.role==='admin'?' — Admin':'');$('#loginPass').value='';if(hit.mustChangePassword===true){$('#forcedNewPass').value='';$('#forcedConfirmPass').value='';$('#forcedPassMsg').textContent='';stopCamera();$$('.screen').forEach(x=>x.classList.remove('active'));$('#changepassword').classList.add('active');return}go('home')}
 $('#saveForcedPassword').onclick=async()=>{if(!sessionUser)return showLogin();const p=$('#forcedNewPass').value,c=$('#forcedConfirmPass').value;if(p.length<4){$('#forcedPassMsg').textContent='Password must be at least 4 characters.';return}if(p!==c){$('#forcedPassMsg').textContent='Passwords do not match.';return}const users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===sessionUser.id);if(idx<0)return showLogin();users[idx]={...users[idx],passHash:await hashPass(p),mustChangePassword:false};writeJ(USERS_KEY,users);sessionUser=users[idx];$('#forcedNewPass').value='';$('#forcedConfirmPass').value='';toast('PASSWORD CHANGED ✓');go('home')};
 function logout(){sessionUser=null;showLogin()}
 function renderSectionChecks(){const d=$('#sectionChecks');if(!d)return;const secs=readJ(SECTIONS_KEY,[]);d.innerHTML='<b>Section access</b>'+secs.map(s=>`<label class="sectionPerm"><input type="checkbox" class="newUserSection" value="${esc(s.id)}"><span>${esc(s.name)}</span></label>`).join('')}
@@ -175,7 +175,7 @@ function renderEditChecks(user){
 }
 function openEditUser(id){
   const user=readJ(USERS_KEY,[]).find(u=>u.id===id);if(!user){toast('User not found');return}
-  $('#editUserId').value=user.id;$('#editUsername').value=user.username;$('#editRole').value=user.role;$('#editEnabled').checked=user.enabled!==false;$('#editUserTitle').textContent='EDIT USER — '+user.username;$('#editUserMsg').textContent='';renderEditChecks(user);go('edituser');
+  $('#editUserId').value=user.id;$('#editUsername').value=user.username;$('#editRole').value=user.role;$('#editEnabled').checked=user.enabled!==false;$('#editUserTitle').textContent='EDIT USER - '+user.username;$('#editUserMsg').textContent='';$('#resetTempPassword').value='';$('#resetTempPasswordConfirm').value='';renderEditChecks(user);go('edituser');
 }
 $('#saveUserChanges').onclick=()=>{
   const id=$('#editUserId').value,users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===id);if(idx<0){toast('User not found');return}
@@ -184,6 +184,15 @@ $('#saveUserChanges').onclick=()=>{
   if(users[idx].role==='admin'&&users[idx].enabled!==false&&(role!=='admin'||!enabled)&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
   users[idx]={...users[idx],role,enabled,sections:[...$$('.editUserSection:checked')].map(x=>x.value),fields:[...$$('.editUserField:checked')].map(x=>x.value)};
   writeJ(USERS_KEY,users);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('users');
+};
+
+$('#resetUserPassword').onclick=async()=>{
+ const id=$('#editUserId').value,p=$('#resetTempPassword').value,c=$('#resetTempPasswordConfirm').value;
+ if(p.length<4){$('#editUserMsg').textContent='Temporary password must be at least 4 characters.';return}
+ if(p!==c){$('#editUserMsg').textContent='Temporary passwords do not match.';return}
+ const users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===id);if(idx<0){toast('User not found');return}
+ users[idx]={...users[idx],passHash:await hashPass(p),mustChangePassword:true,enabled:true};writeJ(USERS_KEY,users);
+ $('#resetTempPassword').value='';$('#resetTempPasswordConfirm').value='';$('#editUserMsg').textContent='Temporary password reset. User must change it at next login.';toast('PASSWORD RESET ✓');
 };
 
 $('#deleteUser').onclick=()=>{
@@ -203,6 +212,22 @@ $('#createAdmin').onclick=createFirstAdmin;$('#loginBtn').onclick=doLogin;$('#lo
 $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if(!name){toast('Enter section name');return}const secs=readJ(SECTIONS_KEY,[]);if(secs.some(s=>s.name.toLowerCase()===name.toLowerCase())){toast('Section already exists');return}const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36);secs.push({id,name,sells:$('#sectionSells').checked});writeJ(SECTIONS_KEY,secs);$('#newSectionName').value='';$('#sectionSells').checked=false;setupAdminScreens();toast('SECTION CREATED ✓')};
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
-const oldGo=go;go=function(id){if((id==='users'||id==='sections'||id==='edituser')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens()};
+const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens()};
+const APP_VERSION='1.21';
+async function checkForUpdate(manual=true){
+ const status=$('#updateStatus');if(status)status.textContent='Checking for update…';
+ try{
+  if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.update()}
+  const r=await fetch('index.html?updatecheck='+Date.now(),{cache:'no-store'}),html=await r.text();
+  const m=html.match(/STOCK SCAN\s*[—-]\s*v([0-9.]+)/i),remote=m?m[1]:APP_VERSION;
+  if(remote!==APP_VERSION){
+   if(status)status.textContent=`New version available: v${remote}`;
+   if(confirm(`NEW VERSION AVAILABLE — v${remote}\n\nUpdate now?`)){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('stock-scan-')).map(k=>caches.delete(k)));location.replace('index.html?updated='+Date.now())}
+  }else{if(status)status.textContent=`Current version: v${APP_VERSION} — up to date`;if(manual)toast('APP IS UP TO DATE ✓')}
+ }catch(e){if(status)status.textContent='Could not check for update.';if(manual)toast('UPDATE CHECK FAILED')}
+}
+$('#checkUpdate').onclick=()=>checkForUpdate(true);$('#headerUpdate').onclick=()=>checkForUpdate(true);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForUpdate(false)});
+
 // Start at Login instead of bypassing authentication.
 showLogin();

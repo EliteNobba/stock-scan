@@ -1,25 +1,25 @@
-STOCK SCAN — v1.20
+STOCK SCAN — v1.21
 
-NEW IN v1.20
-- Admin enters a temporary password when creating a user.
-- New users must change that temporary password on first successful login before entering the app.
-- Current Scan items now have EDIT and REMOVE.
-- EDIT allows quantity changes and adding/replacing the item photo.
-- Existing user editing/deletion safeguards remain.
-- Core barcode scanner and IndexedDB photo storage remain unchanged.
+FIXED / ADDED IN v1.21
+- Fixed first-login temporary-password flow and blocked bypassing it.
+- Admin can RESET PASSWORD with a new temporary password; it must be changed at next login.
+- Edit heading now shows EDIT USER - Username.
+- Added CHECK FOR UPDATE in the header and Settings, plus an automatic check when the app becomes active.
+- Fixed stale cache/script version references that could keep older JavaScript loaded.
+- Current Scan EDIT / add-change photo from v1.20 remains.
+- Core scanner/photo/save workflow remains unchanged.
 
 IMPORTANT
-Authentication is still a device-local prototype. Do not use a real work password yet. Production accounts and permissions will be enforced by the future private backend.
+Authentication is still a device-local prototype. Do not use a real work password yet.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.20.
-2. Login as Admin and create a Normal User with a temporary password.
-3. Log out and login as that Normal User using the temporary password.
-4. Confirm the app forces CHANGE PASSWORD before Home can be used.
-5. Enter and confirm a new password; confirm Home opens.
-6. Log out and confirm the old temporary password no longer works.
-7. Confirm the new password does work.
-8. As Admin, scan/add an item, open CURRENT SCAN, tap EDIT.
-9. Change quantity and add/change photo, then SAVE CHANGES.
-10. Confirm Current Scan shows the updated quantity/photo and the photo opens large.
-11. Quick regression: scan another barcode and ADD TO SCAN.
+1. Confirm STOCK SCAN — v1.21.
+2. Create a Normal User with a temporary password.
+3. Log out and log in with that temporary password.
+4. Confirm CHANGE PASSWORD opens immediately.
+5. Save a new password; then verify old password fails and new password works.
+6. Admin > EDIT USER - Username > RESET PASSWORD.
+7. Log in with reset temporary password and confirm CHANGE PASSWORD is forced again.
+8. CHECK UPDATE should report v1.21 is up to date.
+9. Current Scan > EDIT > add/change photo > SAVE CHANGES.
+10. Quick regression: scan barcode > ADD TO SCAN.
