@@ -1,24 +1,23 @@
-STOCK SCAN — v1.49
+STOCK SCAN — v1.50
 
-REAL MECHANICDESK EXPORT IMPORT
-- FIND A PART can import the real export.xls/export.xlsx.
-- Reads Stocks (or first sheet): B Part No, C Supplier, E Barcode, G Description, K Buy Price.
-- Stores imported parts locally so they remain after reopening.
-- Searches MechanicDesk data plus approved Add Part records.
-- Does not modify export.xls.
-- Uses SheetJS over HTTPS to parse legacy .xls.
-- Direct OneDrive automatic sync remains a later step.
+FIND A PART — CAMERA BARCODE SEARCH
+- Adds SCAN BARCODE WITH CAMERA directly to FIND A PART.
+- Reuses the app's existing ZXing camera barcode scanner.
+- A successful scan automatically places the barcode into the Find a Part search field and runs the search.
+- CANCEL SCAN stops the camera.
+- Text search remains available.
+- Real MechanicDesk export.xls import from v1.49 remains unchanged.
 - SCAN PARTS remains visible to Normal Users during development/testing.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm v1.49 and ✓ Up to date.
+1. Confirm STOCK SCAN — v1.50 and ✓ Up to date.
 2. Admin > FIND A PART.
-3. Choose your real export.xls.
-4. Tap IMPORT PARTS FILE.
-5. Confirm ✓ and imported part count.
-6. Search AL400C.
-7. Confirm real Description / Barcode / Supplier.
-8. Search a known barcode and confirm the item.
-9. Close/reopen and search AL400C without re-importing.
-10. Search an approved ADD A PART item.
-11. Quick barcode > ADD TO SCAN regression.
+3. Confirm SCAN BARCODE WITH CAMERA is visible.
+4. Tap it and allow camera access if requested.
+5. Scan a barcode that you know exists in export.xls.
+6. Confirm the barcode is detected and the matching part appears automatically.
+7. Try CANCEL SCAN and confirm the camera closes.
+8. Confirm normal text search for AL400C still works.
+9. Normal User > FIND A PART > confirm camera barcode search is also available.
+10. Close/reopen and confirm imported MechanicDesk data still searches.
+11. Quick normal SCAN PARTS > barcode > ADD TO SCAN regression.
