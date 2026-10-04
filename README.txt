@@ -1,23 +1,22 @@
-STOCK SCAN — v1.31
+STOCK SCAN — v1.32
 
-PENDING PART IMPROVEMENTS
-- A user can now see their own pending submissions.
-- User can VIEW / EDIT their pending part before Admin approval.
-- Editable fields: Description, Photo, Barcode, Suggested Part No, Category and Location.
-- User can DELETE their own pending submission with confirmation.
-- Users cannot view/edit another user's pending submissions.
-- Pending Parts list now shows a photo thumbnail.
-- Admin still sees all pending submissions and can review, reassign section, approve or reject.
-- v1.30 cache/version alignment retained.
+PENDING REVIEW PERMISSION / EDIT FIX
+- Normal Users no longer see Reassign Section, APPROVE or REJECT.
+- Normal Users can still edit/delete only their own pending submissions.
+- Admin can now edit Description, Photo, Barcode, Suggested Part No, Category and Location while reviewing.
+- Admin can change Reassign Section.
+- Admin SAVE CHANGES saves edits/section, closes the review and returns to Pending Parts.
+- SAVE CHANGES does NOT approve the part; it remains pending until Admin explicitly presses APPROVE.
+- Admin APPROVE / REJECT remain separate actions.
 
 WHAT TO TEST
-1. Confirm STOCK SCAN — v1.31 and ✓ Up to date.
-2. Normal User: submit a new part with photo.
-3. Home should show PENDING PARTS for that user.
-4. Open it: confirm thumbnail appears in the pending list.
-5. VIEW / EDIT: change Description and another field; SAVE CHANGES.
-6. Reopen and confirm changes saved.
-7. CHANGE PHOTO and confirm new photo is retained.
-8. Create another pending part and DELETE PENDING PART; confirm it disappears.
-9. Admin: confirm remaining pending part appears with thumbnail and can still APPROVE/REJECT.
+1. Confirm STOCK SCAN — v1.32 and ✓ Up to date.
+2. Normal User > own Pending Part > VIEW / EDIT.
+3. Confirm NO Reassign Section, APPROVE or REJECT controls are visible.
+4. Edit a field and SAVE CHANGES; confirm it returns to Pending Parts and stays pending.
+5. Admin > same pending part > REVIEW.
+6. Confirm Admin can edit fields/photo and sees Reassign Section + APPROVE + REJECT.
+7. Change section and another field > SAVE CHANGES.
+8. Confirm review closes, item remains Pending, reopen and verify both changes saved.
+9. Press APPROVE and confirm it leaves Pending.
 10. Quick barcode > ADD TO SCAN regression.
