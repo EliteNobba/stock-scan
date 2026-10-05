@@ -1,19 +1,19 @@
-STOCK SCAN — v1.59
+STOCK SCAN — v1.60
 
-FIND PART PERMISSION REFRESH FIX
-- Fixes a Find Part field not returning after Admin re-enables it.
-- PART DETAILS now refreshes the logged-in user's permissions from the latest saved user record before deciding which fields to show.
-- v1.58 permission hiding and detail layout retained.
-- v1.57 search/result navigation and v1.52 barcode/import engine unchanged.
+PERMISSION FIX + USER SETTINGS HISTORY
+- Actual Buy Price bug fixed: Users & Permissions saves visibility in `fields`; PART DETAILS was reading `findFields`.
+- Added per-user settings history with Admin/date/time and before/after role, enabled, sections and Find Part fields.
+- RESTORE PREVIOUS SETTINGS restores an earlier configuration and records the restore.
+- History starts with changes made from v1.60 onward.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm STOCK SCAN — v1.59 and ✓ Up to date.
-2. Admin > USERS & PERMISSIONS > Normal User.
-3. Turn Buy Price OFF and save.
-4. Log in as that Normal User > FIND A PART > AL400C > details. Buy Price must be hidden.
-5. Log back in as Admin > re-enable Buy Price for the same user and save.
-6. Log back in as that Normal User > FIND A PART > AL400C > details.
-7. Buy Price must now be visible again.
-8. Repeat OFF then ON with another field such as Supplier.
-9. Camera barcode search > open result.
-10. Quick SCAN PARTS > barcode > ADD TO SCAN regression.
+1. Confirm v1.60 and ✓ Up to date.
+2. Admin > Normal User > turn Buy Price ON > SAVE.
+3. Login as Normal User > FIND A PART > AL400C > details.
+4. Buy Price MUST appear.
+5. Admin > same user > turn Buy Price OFF > SAVE.
+6. Login as Normal User and confirm Buy Price is hidden.
+7. Admin > same user > USER SETTINGS HISTORY; confirm both changes are recorded.
+8. RESTORE PREVIOUS SETTINGS to a setup where Buy Price was ON.
+9. Login as Normal User > AL400C; Buy Price must be visible again.
+10. Camera barcode search and SCAN PARTS regression.

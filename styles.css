@@ -57,3 +57,5 @@ button.find-part-result b{
 .part-detail-row:last-child{border-bottom:0}
 .part-detail-row span{font-size:13px;font-weight:700;opacity:.68;text-transform:uppercase}
 .part-detail-row strong{font-size:16px;overflow-wrap:anywhere}
+
+.history-entry{padding:12px 0;border-bottom:1px solid #e5e7eb;font-size:14px}.history-entry:last-child{border-bottom:0}.history-entry button{margin:9px 0 0;padding:10px;font-size:13px}

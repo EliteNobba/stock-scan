@@ -95,7 +95,7 @@ function currentFindFields(){
   if(latest)sessionUser={...sessionUser,...latest};
  }
  if(sessionUser?.role==='admin')return ['part','description','photo','barcode','quantity','location','category','buyPrice','sellPrice','supplier','minQty','maxQty','stockHistory'];
- const f=Array.isArray(sessionUser?.findFields)?sessionUser.findFields:null;
+ const f=Array.isArray(sessionUser?.fields)?sessionUser.fields:(Array.isArray(sessionUser?.findFields)?sessionUser.findFields:null);
  return f&&f.length?f:['part','description','photo','barcode','location','category','supplier'];
 }
 function canFindField(name){return sessionUser?.role==='admin'||currentFindFields().includes(name);}
@@ -155,7 +155,7 @@ $('#doPartSearch').onclick=()=>{
  }).join(''):'<p>No matches.</p>';
  $$('.find-part-result').forEach(b=>b.onclick=()=>showPartDetail(window.findPartHits[Number(b.dataset.findIndex)]));
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.59');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.60');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -295,17 +295,49 @@ function renderEditChecks(user){
   $('#editSectionChecks').innerHTML='<b>Section access</b>'+secs.map(sec=>`<label class="sectionPerm"><input type="checkbox" class="editUserSection" value="${esc(sec.id)}" ${selected.has(sec.id)?'checked':''}><span>${esc(sec.name)}</span></label>`).join('');
   $('#editFieldChecks').innerHTML=SEARCH_FIELDS.map(f=>`<label><input type="checkbox" class="editUserField" value="${esc(f)}" ${fields.has(f)?'checked':''}><span>${esc(f)}</span></label>`).join('');
 }
+
+const USER_SETTINGS_HISTORY_KEY='stockscan_user_settings_history_v160';
+function userSettingsSnapshot(u){return {role:u.role,enabled:u.enabled!==false,sections:[...(u.sections||[])],fields:[...(u.fields||[])],username:u.username};}
+function addUserSettingsHistory(user,before,after,action='settings-change'){
+ const all=readJ(USER_SETTINGS_HISTORY_KEY,[]);
+ all.unshift({id:String(Date.now())+Math.random().toString(36).slice(2),userId:user.id,username:user.username,at:new Date().toISOString(),changedBy:sessionUser?.username||'Admin',action,before,after});
+ writeJ(USER_SETTINGS_HISTORY_KEY,all.slice(0,500));
+}
+function renderUserSettingsHistory(userId){
+ const box=$('#userSettingsHistory');if(!box)return;
+ const hist=readJ(USER_SETTINGS_HISTORY_KEY,[]).filter(h=>h.userId===userId).slice(0,25);
+ if(!hist.length){box.innerHTML='<p class="small">No settings changes recorded yet. History starts with v1.60.</p>';return;}
+ box.innerHTML=hist.map(h=>{
+  const b=h.before||{},a=h.after||{},changes=[];
+  if(b.role!==a.role)changes.push(`Role: ${esc(b.role||'—')} → ${esc(a.role||'—')}`);
+  if(b.enabled!==a.enabled)changes.push(`Enabled: ${b.enabled?'Yes':'No'} → ${a.enabled?'Yes':'No'}`);
+  if(JSON.stringify(b.sections||[])!==JSON.stringify(a.sections||[]))changes.push(`Sections: ${esc((b.sections||[]).join(', ')||'None')} → ${esc((a.sections||[]).join(', ')||'None')}`);
+  if(JSON.stringify(b.fields||[])!==JSON.stringify(a.fields||[]))changes.push(`Find fields: ${esc((b.fields||[]).join(', ')||'None')} → ${esc((a.fields||[]).join(', ')||'None')}`);
+  return `<div class="history-entry"><b>${new Date(h.at).toLocaleString()}</b><br><small>By ${esc(h.changedBy||'Admin')}</small><br>${changes.join('<br>')||'Settings restored'}<button type="button" class="secondary restoreUserSettings" data-history-id="${esc(h.id)}">RESTORE PREVIOUS SETTINGS</button></div>`;
+ }).join('');
+ $$('.restoreUserSettings').forEach(b=>b.onclick=()=>restoreUserSettings(b.dataset.historyId));
+}
+function restoreUserSettings(historyId){
+ const h=readJ(USER_SETTINGS_HISTORY_KEY,[]).find(x=>x.id===historyId);if(!h)return;
+ const users=readJ(USERS_KEY,[]),i=users.findIndex(u=>u.id===h.userId);if(i<0)return;
+ if(!confirm(`Restore the previous settings for ${users[i].username}?`))return;
+ const before=userSettingsSnapshot(users[i]),r=h.before||{};
+ users[i]={...users[i],role:r.role||users[i].role,enabled:r.enabled!==false,sections:[...(r.sections||[])],fields:[...(r.fields||[])]};
+ const after=userSettingsSnapshot(users[i]);writeJ(USERS_KEY,users);addUserSettingsHistory(users[i],before,after,'restore');
+ renderEditChecks(users[i]);renderUserSettingsHistory(users[i].id);renderUsers();toast('Previous user settings restored');
+}
 function openEditUser(id){
   const user=readJ(USERS_KEY,[]).find(u=>u.id===id);if(!user){toast('User not found');return}
-  $('#editUserId').value=user.id;$('#editUsername').value=user.username;$('#editRole').value=user.role;$('#editEnabled').checked=user.enabled!==false;$('#editUserTitle').textContent='EDIT USER - '+user.username;$('#editUserMsg').textContent='';$('#resetTempPassword').value='';$('#resetTempPasswordConfirm').value='';renderEditChecks(user);go('edituser');
+  $('#editUserId').value=user.id;$('#editUsername').value=user.username;$('#editRole').value=user.role;$('#editEnabled').checked=user.enabled!==false;$('#editUserTitle').textContent='EDIT USER - '+user.username;$('#editUserMsg').textContent='';$('#resetTempPassword').value='';$('#resetTempPasswordConfirm').value='';renderEditChecks(user);renderUserSettingsHistory(user.id);go('edituser');
 }
 $('#saveUserChanges').onclick=()=>{
-  const id=$('#editUserId').value,users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===id);if(idx<0){toast('User not found');return}
+  const id=$('#editUserId').value,users=readJ(USERS_KEY,[]),idx=users.findIndex(u=>u.id===id);if(idx<0){toast('User not found');return};
+  const before=userSettingsSnapshot(users[idx])
   const role=$('#editRole').value,enabled=$('#editEnabled').checked;
   const otherActiveAdmins=users.filter((u,i)=>i!==idx&&u.role==='admin'&&u.enabled!==false).length;
   if(users[idx].role==='admin'&&users[idx].enabled!==false&&(role!=='admin'||!enabled)&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
   users[idx]={...users[idx],role,enabled,sections:[...$$('.editUserSection:checked')].map(x=>x.value),fields:[...$$('.editUserField:checked')].map(x=>x.value)};
-  writeJ(USERS_KEY,users);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('users');
+  const after=userSettingsSnapshot(users[idx]);writeJ(USERS_KEY,users);if(JSON.stringify(before)!==JSON.stringify(after))addUserSettingsHistory(users[idx],before,after);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('users');
 };
 
 $('#resetUserPassword').onclick=async()=>{
@@ -335,7 +367,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.59';
+const APP_VERSION='1.60';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
