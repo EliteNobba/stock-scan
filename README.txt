@@ -1,23 +1,16 @@
-STOCK SCAN — v1.53
+STOCK SCAN — v1.54
 
-FIND A PART — PART DETAILS
-- Find a Part search results are now tappable.
-- Tap a result to open PART DETAILS.
-- MechanicDesk details can show Part Number, Description, Barcode, Supplier and Buy Price.
-- Approved custom parts can also show Category and Location where available.
-- Admin sees all supported detail fields.
-- Normal User detail fields respect the user's existing Find Part field visibility permissions.
-- Source is always identified so we know whether data came from MechanicDesk or an approved section.
-- v1.52 barcode camera and 12/13-digit matching remain unchanged.
+FIND A PART RESULT DISPLAY FIX
+- Fixes v1.53 showing the correct number of AL400C result cards but leaving the cards blank.
+- Result rendering now accepts the field names used by both MechanicDesk imports and approved custom parts.
+- Part Details uses the same tolerant field mapping.
+- No change to the confirmed v1.52 barcode matching/import engine.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm STOCK SCAN — v1.53 and ✓ Up to date.
+1. Confirm STOCK SCAN — v1.54 and ✓ Up to date.
 2. Admin > FIND A PART > search AL400C.
-3. Tap the AL400C result.
-4. Confirm PART DETAILS opens.
-5. Confirm Part Number, Description, Barcode, Supplier and Buy Price are correct.
-6. Tap BACK TO RESULTS and confirm the search results remain.
-7. Find an approved ADD A PART item and open it; confirm Category/Location appear if entered.
-8. Normal User > FIND A PART > open a result and confirm only permitted Find Part fields are shown.
-9. Test FIND A PART camera barcode search and open its result.
-10. Quick SCAN PARTS > barcode > ADD TO SCAN regression.
+3. Confirm TWO result cards appear and BOTH contain visible Part Number/Description information.
+4. Tap the first result and confirm PART DETAILS contains data.
+5. Back to Results, tap the second result and confirm its details.
+6. Test camera barcode search and confirm the result text is visible.
+7. Quick SCAN PARTS > barcode > ADD TO SCAN regression.
