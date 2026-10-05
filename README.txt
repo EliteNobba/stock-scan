@@ -1,18 +1,24 @@
-STOCK SCAN — v1.57
+STOCK SCAN — v1.58
 
-FIND A PART DETAIL NAVIGATION FIX
-- Actual root cause found: showPartDetail() called show('partdetail'), but this app's navigation function is go().
-- Changed it to go('partdetail').
-- Result buttons are wired immediately after search results are rendered.
-- Keeps v1.55 visible-text fix and all v1.52 import/barcode fixes.
+PART DETAILS + USER FIELD PERMISSIONS
+- Builds on confirmed stable v1.57.
+- PART DETAILS now has a cleaner label/value layout.
+- Admin sees all supported Find a Part fields.
+- Normal Users use their existing Find Part field visibility permissions.
+- Supported detail permissions include Part Number, Description, Barcode, Supplier, Buy Price, Sell Price, Category, Location, Quantity, Minimum Qty and Maximum Qty when data exists.
+- Buy/Sell prices are formatted as currency when numeric.
+- Source remains visible for troubleshooting/data provenance.
+- Existing import, AL400C multiple results, camera barcode search and 12/13-digit matching are unchanged.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm STOCK SCAN — v1.57 and ✓ Up to date.
+1. Confirm STOCK SCAN — v1.58 and ✓ Up to date.
 2. Admin > FIND A PART > search AL400C.
-3. Confirm two visible AL400C results.
-4. Tap FIRST result.
-5. PART DETAILS must open and show data.
-6. BACK TO RESULTS, tap SECOND result.
-7. Confirm its PART DETAILS.
-8. Camera barcode search > tap result > details.
-9. Quick SCAN PARTS > barcode > ADD TO SCAN regression.
+3. Open each AL400C result and confirm the new labelled detail layout.
+4. Confirm Buy Price and Supplier match export.xls.
+5. Admin > USERS & PERMISSIONS > choose a Normal User.
+6. Turn OFF one Find Part field such as Buy Price and save.
+7. Log in as that Normal User > FIND A PART > open AL400C.
+8. Confirm the disabled field is NOT shown and permitted fields ARE shown.
+9. Re-enable the field and confirm it returns.
+10. Camera barcode search > open result.
+11. Quick SCAN PARTS > barcode > ADD TO SCAN regression.

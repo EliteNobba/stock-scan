@@ -94,19 +94,32 @@ function currentFindFields(){
  return f&&f.length?f:['part','description','photo','barcode','location','category','supplier'];
 }
 function canFindField(name){return sessionUser?.role==='admin'||currentFindFields().includes(name);}
-function showPartDetail(p){
+function detailRow(label,value){
+ const v=(value===0||value)?String(value):'—';
+ return `<div class="part-detail-row"><span>${esc(label)}</span><strong>${esc(v)}</strong></div>`;
+}
+function moneyValue(v){
+ if(v===null||v===undefined||v==='')return '—';
+ const n=Number(String(v).replace(/[$,]/g,''));
+ return Number.isFinite(n)?'$'+n.toFixed(2):String(v);
+}
+async function showPartDetail(p){
  if(!p)return;
  const d=$('#partDetailContent');if(!d)return;
  const rows=[];
- if(canFindField('part'))rows.push(`<p><b>Part Number</b><br>${esc(p.part??p.partNo??p.suggestedPartNo??'—')}</p>`);
- if(canFindField('description'))rows.push(`<p><b>Description</b><br>${esc(p.description??p.name??'—')}</p>`);
- if(canFindField('barcode'))rows.push(`<p><b>Barcode</b><br>${esc(p.barcode||'—')}</p>`);
- if(canFindField('supplier'))rows.push(`<p><b>Supplier</b><br>${esc(p.supplier||'—')}</p>`);
- if(canFindField('buyPrice'))rows.push(`<p><b>Buy Price</b><br>${esc(p.price||'—')}</p>`);
- if(canFindField('category'))rows.push(`<p><b>Category</b><br>${esc(p.category||'—')}</p>`);
- if(canFindField('location'))rows.push(`<p><b>Location</b><br>${esc(p.location||'—')}</p>`);
- rows.push(`<p><b>Source</b><br>${esc(p.source||'—')}</p>`);
- d.innerHTML=`<div class="card">${rows.join('')}</div>`;
+ if(canFindField('part'))rows.push(detailRow('Part Number',p.part??p.partNo??p.suggestedPartNo));
+ if(canFindField('description'))rows.push(detailRow('Description',p.description??p.name));
+ if(canFindField('barcode'))rows.push(detailRow('Barcode',p.barcode));
+ if(canFindField('supplier'))rows.push(detailRow('Supplier',p.supplier));
+ if(canFindField('buyPrice'))rows.push(detailRow('Buy Price',moneyValue(p.price??p.buyPrice)));
+ if(canFindField('sellPrice')&&(p.sellPrice!==undefined&&p.sellPrice!==''))rows.push(detailRow('Sell Price',moneyValue(p.sellPrice)));
+ if(canFindField('category'))rows.push(detailRow('Category',p.category));
+ if(canFindField('location'))rows.push(detailRow('Location',p.location));
+ if(canFindField('quantity')&&(p.quantity!==undefined&&p.quantity!==''))rows.push(detailRow('Quantity',p.quantity));
+ if(canFindField('minQty')&&(p.minQty!==undefined&&p.minQty!==''))rows.push(detailRow('Minimum Qty',p.minQty));
+ if(canFindField('maxQty')&&(p.maxQty!==undefined&&p.maxQty!==''))rows.push(detailRow('Maximum Qty',p.maxQty));
+ rows.push(detailRow('Source',p.source));
+ d.innerHTML=`<div class="card part-detail-card">${rows.join('')}</div>`;
  go('partdetail');
 }
 function normalizeBarcode(v){return String(v??'').trim().replace(/\.0$/,'').replace(/\s+/g,'');}
@@ -137,7 +150,7 @@ $('#doPartSearch').onclick=()=>{
  }).join(''):'<p>No matches.</p>';
  $$('.find-part-result').forEach(b=>b.onclick=()=>showPartDetail(window.findPartHits[Number(b.dataset.findIndex)]));
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.57');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.58');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -317,7 +330,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.57';
+const APP_VERSION='1.58';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';

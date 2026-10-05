@@ -51,3 +51,9 @@ button.find-part-result small,
 button.find-part-result b{
  color:#111 !important;
 }
+
+.part-detail-card{padding:0;overflow:hidden}
+.part-detail-row{display:grid;grid-template-columns:minmax(105px,38%) 1fr;gap:12px;padding:13px 14px;border-bottom:1px solid #e5e7eb;align-items:start}
+.part-detail-row:last-child{border-bottom:0}
+.part-detail-row span{font-size:13px;font-weight:700;opacity:.68;text-transform:uppercase}
+.part-detail-row strong{font-size:16px;overflow-wrap:anywhere}
