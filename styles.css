@@ -38,3 +38,6 @@ header small{display:block;margin-bottom:14px}
 .reviewedStatus.rejected{border-left:6px solid #b71c1c}
 
 #findBarcodeVideo{width:100%;max-height:320px;background:#111;border-radius:8px}
+
+.find-part-result{display:block;width:100%;text-align:left;margin-top:10px}
+#partDetailContent p{margin:0 0 14px}

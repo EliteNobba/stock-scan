@@ -87,6 +87,28 @@ async function importMechanicDeskFile(){
  }catch(err){if(status)status.textContent=`Import failed: ${err.message||err}`;}
 }
 
+
+function currentFindFields(){
+ if(sessionUser?.role==='admin')return ['part','description','photo','barcode','quantity','location','category','buyPrice','sellPrice','supplier','minQty','maxQty','stockHistory'];
+ const f=Array.isArray(sessionUser?.findFields)?sessionUser.findFields:null;
+ return f&&f.length?f:['part','description','photo','barcode','location','category','supplier'];
+}
+function canFindField(name){return sessionUser?.role==='admin'||currentFindFields().includes(name);}
+function showPartDetail(p){
+ if(!p)return;
+ const d=$('#partDetailContent');if(!d)return;
+ const rows=[];
+ if(canFindField('part'))rows.push(`<p><b>Part Number</b><br>${esc(p.part||'—')}</p>`);
+ if(canFindField('description'))rows.push(`<p><b>Description</b><br>${esc(p.description||'—')}</p>`);
+ if(canFindField('barcode'))rows.push(`<p><b>Barcode</b><br>${esc(p.barcode||'—')}</p>`);
+ if(canFindField('supplier'))rows.push(`<p><b>Supplier</b><br>${esc(p.supplier||'—')}</p>`);
+ if(canFindField('buyPrice'))rows.push(`<p><b>Buy Price</b><br>${esc(p.price||'—')}</p>`);
+ if(canFindField('category'))rows.push(`<p><b>Category</b><br>${esc(p.category||'—')}</p>`);
+ if(canFindField('location'))rows.push(`<p><b>Location</b><br>${esc(p.location||'—')}</p>`);
+ rows.push(`<p><b>Source</b><br>${esc(p.source||'—')}</p>`);
+ d.innerHTML=`<div class="card">${rows.join('')}</div>`;
+ show('partdetail');
+}
 function normalizeBarcode(v){return String(v??'').trim().replace(/\.0$/,'').replace(/\s+/g,'');}
 function barcodeMatches(stored,query){
  const a=normalizeBarcode(stored),b=normalizeBarcode(query);
@@ -99,15 +121,16 @@ function barcodeMatches(stored,query){
 }
 $('#doPartSearch').onclick=()=>{
  const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}
- const master=parts.filter(p=>String(p.part||'').toLowerCase().includes(q)||String(p.description||'').toLowerCase().includes(q)||barcodeMatches(p.barcode,q)).slice(0,50).map(p=>({part:p.part,description:p.description,barcode:p.barcode,supplier:p.supplier,source:'MechanicDesk'}));
+ const master=parts.filter(p=>String(p.part||'').toLowerCase().includes(q)||String(p.description||'').toLowerCase().includes(q)||barcodeMatches(p.barcode,q)).slice(0,50).map(p=>({part:p.part,description:p.description,barcode:p.barcode,supplier:p.supplier,source:'MechanicDesk',price:p.price||'',sectionId:p.sectionId||''}));
  const approved=readJ('stockscan_approved_parts_v129',[]);
  const allowed=sessionUser?.role==='admin'?null:(Array.isArray(sessionUser?.sections)?sessionUser.sections:[]);
  const secs=readJ(SECTIONS_KEY,[]);
- const custom=approved.filter(x=>x.status==='approved'&&(!allowed||allowed.includes(x.sectionId))).filter(x=>String(x.suggestedPartNo||'').toLowerCase().includes(q)||String(x.description||'').toLowerCase().includes(q)||barcodeMatches(x.barcode,q)).map(x=>({part:x.suggestedPartNo||'—',description:x.description||'',barcode:x.barcode||'',supplier:'',source:secs.find(s=>s.id===x.sectionId)?.name||'Approved Part'}));
+ const custom=approved.filter(x=>x.status==='approved'&&(!allowed||allowed.includes(x.sectionId))).filter(x=>String(x.suggestedPartNo||'').toLowerCase().includes(q)||String(x.description||'').toLowerCase().includes(q)||barcodeMatches(x.barcode,q)).map(x=>({part:x.suggestedPartNo||'—',description:x.description||'',barcode:x.barcode||'',supplier:x.supplier||'',price:x.buyPrice||x.price||'',category:x.category||'',location:x.location||'',sectionId:x.sectionId||'',photoRef:x.photoRef||x.photo||'',source:secs.find(s=>s.id===x.sectionId)?.name||'Approved Part'}));
  const hits=[...custom,...master].slice(0,50);
- d.innerHTML=hits.length?hits.map(p=>`<div class="card"><b>${esc(p.part||'—')}</b><br>${esc(p.description||'')}<br><small>${p.barcode?`Barcode: ${esc(p.barcode)} · `:''}${p.supplier?`${esc(p.supplier)} · `:''}${esc(p.source)}</small></div>`).join(''):'<p>No matches.</p>';
+ window.findPartHits=hits;
+ d.innerHTML=hits.length?hits.map((p,i)=>`<button class="card find-part-result" data-find-index="${i}"><b>${esc(p.part||'—')}</b><br>${esc(p.description||'')}<br><small>${p.barcode?`Barcode: ${esc(p.barcode)} · `:''}${p.supplier?`${esc(p.supplier)} · `:''}${esc(p.source)}</small><br><small>VIEW DETAILS ›</small></button>`).join(''):'<p>No matches.</p>';
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.52');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.53');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -287,7 +310,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.52';
+const APP_VERSION='1.53';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
@@ -574,3 +597,8 @@ document.addEventListener('click',e=>{if(e.target?.id==='importMechanicDesk')imp
 window.addEventListener('load',loadMechanicDeskParts);
 
 document.addEventListener('click',e=>{if(e.target?.id==='scanFindBarcode')startFindBarcodeScanner();if(e.target?.id==='cancelFindBarcode')stopFindBarcodeScanner();});
+
+document.addEventListener('click',e=>{
+ const b=e.target?.closest?.('[data-find-index]');
+ if(b){const p=(window.findPartHits||[])[Number(b.dataset.findIndex)];showPartDetail(p);}
+});
