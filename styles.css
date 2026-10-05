@@ -41,3 +41,13 @@ header small{display:block;margin-bottom:14px}
 
 .find-part-result{display:block;width:100%;text-align:left;margin-top:10px}
 #partDetailContent p{margin:0 0 14px}
+
+/* v1.55: Find a Part result cards are buttons, so override global button white text. */
+button.find-part-result{
+ color:#111 !important;
+ background:#fff !important;
+}
+button.find-part-result small,
+button.find-part-result b{
+ color:#111 !important;
+}
