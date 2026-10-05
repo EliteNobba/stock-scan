@@ -1,18 +1,18 @@
-STOCK SCAN — v1.56
+STOCK SCAN — v1.57
 
-FIND A PART RESULT TAP FIX
-- Fixes visible Find a Part results not opening when tapped.
-- Each result now has its own direct PART DETAILS action rather than relying on the later delegated click handler.
-- Result buttons are explicitly type="button" so they cannot behave like submit/navigation controls.
-- v1.55 visible result text fix retained.
-- MechanicDesk import, text search, camera barcode search and 12/13-digit barcode matching unchanged.
+FIND A PART DETAIL NAVIGATION FIX
+- Actual root cause found: showPartDetail() called show('partdetail'), but this app's navigation function is go().
+- Changed it to go('partdetail').
+- Result buttons are wired immediately after search results are rendered.
+- Keeps v1.55 visible-text fix and all v1.52 import/barcode fixes.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm STOCK SCAN — v1.56 and ✓ Up to date.
+1. Confirm STOCK SCAN — v1.57 and ✓ Up to date.
 2. Admin > FIND A PART > search AL400C.
-3. Confirm the two AL400C results contain visible text.
-4. Tap the FIRST result. PART DETAILS must open and contain data.
-5. BACK TO RESULTS.
-6. Tap the SECOND result. PART DETAILS must open and contain data.
-7. Test camera barcode search > tap its result.
-8. Quick SCAN PARTS > barcode > ADD TO SCAN regression.
+3. Confirm two visible AL400C results.
+4. Tap FIRST result.
+5. PART DETAILS must open and show data.
+6. BACK TO RESULTS, tap SECOND result.
+7. Confirm its PART DETAILS.
+8. Camera barcode search > tap result > details.
+9. Quick SCAN PARTS > barcode > ADD TO SCAN regression.
