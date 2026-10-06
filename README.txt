@@ -1,20 +1,20 @@
-STOCK SCAN — v1.64
+STOCK SCAN — v1.65
 
-SECTION VISIBILITY IN FIND A PART
-- FIND A PART shows which Sections the logged-in user can search.
-- Result cards identify their Section.
-- PART DETAILS shows the Section.
-- v1.63 section access filtering remains unchanged.
-- MechanicDesk import controls remain visible to Normal Users during development/testing only; final production will hide them.
+SEARCHING SECTIONS DISPLAY FIX
+- Fixes the missing 'Searching sections:' line on FIND A PART.
+- Root cause: in v1.64 the Searching Sections element was nested inside the MechanicDesk import-status paragraph.
+- Updating the MechanicDesk status replaced that paragraph's content and removed the Searching Sections element.
+- v1.65 gives Searching Sections its own separate display element.
+- All v1.64 section filtering, result Section labels and PART DETAILS Section display are retained.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm v1.64 and ✓ Up to date.
-2. Admin > FIND A PART. 'Searching sections:' should list all Sections.
-3. Search AL400C. Results should identify Work.
-4. Open both results. PART DETAILS should show Section: Work.
-5. Normal User with Work access > FIND A PART. 'Searching sections:' should include Work.
-6. Search AL400C; results/details should show Work.
-7. Admin removes Work access from that user.
-8. Normal User > FIND A PART. Work must disappear and AL400C Work results must not appear.
+1. Confirm v1.65 and ✓ Up to date.
+2. Admin > FIND A PART.
+3. Directly below the MechanicDesk parts-loaded status, confirm 'Searching sections:' is visible and lists the Admin sections.
+4. Search AL400C. Confirm results identify Work.
+5. Open both results. Confirm PART DETAILS shows Section: Work.
+6. Normal User with Work access > FIND A PART. Confirm 'Searching sections:' includes Work.
+7. Remove Work access from that Normal User.
+8. Login as Normal User > FIND A PART. Confirm Work is absent and AL400C Work results do not appear.
 9. Restore Work access and confirm results return.
-10. Camera barcode search and SCAN PARTS regression.
+10. Quick camera barcode and SCAN PARTS regression.

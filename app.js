@@ -168,7 +168,7 @@ $('#doPartSearch').onclick=()=>{
  }).join(''):'<p>No matches.</p>';
  $$('.find-part-result').forEach(b=>b.onclick=()=>showPartDetail(window.findPartHits[Number(b.dataset.findIndex)]));
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.64');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.65');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -386,7 +386,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='search')renderMechanicDeskSection();if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.64';
+const APP_VERSION='1.65';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
