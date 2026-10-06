@@ -59,11 +59,3 @@ button.find-part-result b{
 .part-detail-row strong{font-size:16px;overflow-wrap:anywhere}
 
 .history-entry{padding:12px 0;border-bottom:1px solid #e5e7eb;font-size:14px}.history-entry:last-child{border-bottom:0}.history-entry button{margin:9px 0 0;padding:10px;font-size:13px}
-
-/* v1.67 — make adjacent Find a Part results easier to distinguish */
-#searchResults .find-part-result:nth-child(odd){
-  background:#eef2f5;
-}
-#searchResults .find-part-result:nth-child(even){
-  background:#ffffff;
-}
