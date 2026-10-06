@@ -1,25 +1,23 @@
-STOCK SCAN — v1.72
+STOCK SCAN — v1.74
 
-SERVICE WORKER / UPDATER REDESIGN
-- Prevents old index.html versions from being restored by the service worker.
-- index.html/navigation is now always network-only and is never stored in the Stock Scan service-worker cache.
-- Only versioned static assets are cached.
-- Activation removes older Stock Scan caches.
-- UPDATE asks the registration to update, waits for service-worker controllerchange, and reloads only after the new worker actually takes control.
-- If iOS does not transfer control promptly, the app says: “vX ready — close and reopen Stock Scan”.
-- No localStorage or IndexedDB data is cleared.
-- v1.71 photo/detail fix and Find result shading are retained.
+ACCOUNT STARTUP RECOVERY
+Built directly from the stable v1.72 baseline.
+
+- Retains the successful v1.72 service-worker/update architecture.
+- Does NOT include the v1.73 update-check rewrite.
+- Before first-time setup is evaluated, checks for existing users in stockscan_users_v117.
+- If existing users are present but stockscan_auth_v117 is missing, restores ONLY the setup/auth marker.
+- Does not create, replace, edit or delete any user.
+- Does not clear localStorage.
+- Does not clear IndexedDB or photos.
+- If there really are no existing users, normal FIRST-TIME ADMIN SETUP remains available.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Leave GitHub on v1.71 until ready to publish v1.72.
-2. Publish all v1.72 files together.
-3. On the phone, wait for Update available — v1.72.
-4. Press UPDATE once.
-5. Either:
-   A) it changes to v1.72 itself, or
-   B) it says “v1.72 ready — close and reopen Stock Scan”; close/reopen once.
-6. Confirm STOCK SCAN — v1.72 and Up to date.
-7. Close/reopen the app TWO more times. It must remain v1.72 every time.
-8. Admin > FIND A PART > approved Add Part with photo > PART DETAILS; photo must appear.
-9. Confirm Find results alternate shaded / white.
-10. Quick AL400C, camera barcode and SCAN PARTS regression.
+1. Publish all v1.74 files to GitHub.
+2. Do NOT create a new Admin before testing.
+3. Open Stock Scan on the PC.
+4. If existing users are still stored, FIRST-TIME ADMIN SETUP should disappear and normal Login should return.
+5. Confirm your existing Admin/User login works.
+6. Repeat on iPhone.
+7. Confirm existing users/settings are present.
+8. Only after account recovery passes, continue with photo/detail testing.
