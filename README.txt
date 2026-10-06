@@ -1,21 +1,23 @@
-STOCK SCAN — v1.62
+STOCK SCAN — v1.63
 
-USERS & PERMISSIONS ORGANISATION + CLEARER HISTORY
-- USERS & PERMISSIONS is now a simple menu with CREATE USER and EDIT USERS.
-- Existing create-user controls moved to CREATE USER.
-- Existing user list moved to EDIT USERS.
-- Edit User returns to EDIT USERS.
-- USER SETTINGS HISTORY now lists only what changed, e.g. Buy Price: OFF → ON, rather than repeating every field still enabled.
-- Restore Previous Settings retained.
-- v1.61 Normal User Part Details permission fix retained.
+SECTION-AWARE MECHANICDESK DATA
+- FIND A PART MechanicDesk import can now be assigned to a Section.
+- The selected section is remembered.
+- Existing older MechanicDesk imports default to Work.
+- Admin can search all imported MechanicDesk parts.
+- Normal Users only see MechanicDesk results if they have access to that Section.
+- Approved Add Part section filtering remains.
+- v1.62 Users & Permissions and settings history/restore retained.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm v1.62 and ✓ Up to date.
-2. Admin > USERS & PERMISSIONS. Confirm only CREATE USER and EDIT USERS are shown.
-3. Open CREATE USER and confirm the original create-user controls are there.
-4. Back > EDIT USERS and confirm existing users are listed.
-5. Edit a Normal User > change only Buy Price ON/OFF > SAVE.
-6. Re-open that user > USER SETTINGS HISTORY. Confirm it says only Buy Price: ON → OFF (or OFF → ON), not the complete field list.
-7. Test RESTORE PREVIOUS SETTINGS.
-8. Login as Normal User > FIND A PART > AL400C > confirm details and Buy Price permission still work.
-9. Camera barcode search and SCAN PARTS regression.
+1. Confirm v1.63 and ✓ Up to date.
+2. Admin > FIND A PART. Confirm 'Import into section' appears.
+3. Select Work and import export.xls.
+4. Confirm status shows the number of parts and 'Section: Work'.
+5. Admin search AL400C and open both results.
+6. Normal User WITH Work access > search AL400C. Results must appear and open.
+7. Admin > EDIT USERS > remove Work access from that Normal User > SAVE.
+8. Login as Normal User > search AL400C. MechanicDesk Work results must NOT appear.
+9. Admin > restore Work access. Normal User AL400C results must return.
+10. Confirm User Settings History records the Work access change.
+11. Camera barcode search and SCAN PARTS regression.

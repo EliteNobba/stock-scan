@@ -63,10 +63,23 @@ async function startFindBarcodeScanner(){
  }catch(err){if(status)status.textContent=`Camera scan failed: ${err.message||err}`;}
 }
 const MECH_PARTS_KEY='stockscan_mechanicdesk_parts_v149';
+const MECH_META_KEY='stockscan_mechanicdesk_meta_v163';
+function renderMechanicDeskSection(){
+ const sel=$('#mechanicDeskSection'),secs=readJ(SECTIONS_KEY,[]),meta=readJ(MECH_META_KEY,{sectionId:'work'});
+ if(sel){
+  sel.innerHTML=secs.map(s=>`<option value="${esc(s.id)}" ${s.id===(meta.sectionId||'work')?'selected':''}>${esc(s.name)}</option>`).join('');
+  if(!sel.value&&secs.length)sel.value=secs.some(s=>s.id==='work')?'work':secs[0].id;
+ }
+ const s=$('#mechanicDeskImportStatus');
+ if(s&&parts.length){
+  const sec=secs.find(x=>x.id===(meta.sectionId||'work'));
+  s.textContent=`${parts.length} MechanicDesk parts loaded${sec?' — Section: '+sec.name:''}.`;
+ }
+}
 function loadMechanicDeskParts(){
  const saved=readJ(MECH_PARTS_KEY,[]);
  if(saved.length)parts=saved;
- const s=$('#mechanicDeskImportStatus');if(s&&saved.length)s.textContent=`${saved.length} MechanicDesk parts loaded.`;
+ renderMechanicDeskSection();
 }
 async function importMechanicDeskFile(){
  const file=$('#mechanicDeskFile')?.files?.[0],status=$('#mechanicDeskImportStatus');
@@ -78,11 +91,12 @@ async function importMechanicDeskFile(){
   const ws=wb.Sheets['Stocks']||wb.Sheets[wb.SheetNames[0]];
   if(!ws)throw new Error('Stocks sheet not found');
   const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false}), imported=[];
+  const importSectionId=$('#mechanicDeskSection')?.value||'work';
   for(let i=1;i<rows.length;i++){const r=rows[i]||[],part=String(r[1]||'').trim();if(!part)continue;
-   imported.push({part,supplier:String(r[2]||'').trim(),barcode:String(r[4]||'').trim(),description:String(r[6]||'').trim(),price:String(r[10]||'').trim(),source:'MechanicDesk'});
+   imported.push({part,supplier:String(r[2]||'').trim(),barcode:String(r[4]||'').trim(),description:String(r[6]||'').trim(),price:String(r[10]||'').trim(),source:'MechanicDesk',sectionId:importSectionId});
   }
   if(!imported.length)throw new Error('No parts found in column B');
-  parts=imported;writeJ(MECH_PARTS_KEY,imported);
+  parts=imported;writeJ(MECH_PARTS_KEY,imported);writeJ(MECH_META_KEY,{sectionId:importSectionId,fileName:file.name,importedAt:new Date().toISOString()});
   if(status)status.textContent=`✓ ${imported.length} MechanicDesk parts imported from ${file.name}`;
  }catch(err){if(status)status.textContent=`Import failed: ${err.message||err}`;}
 }
@@ -129,7 +143,8 @@ function barcodeMatches(stored,query){
 }
 $('#doPartSearch').onclick=()=>{
  const q=$('#partSearch').value.trim().toLowerCase(),d=$('#searchResults');if(!q){d.innerHTML='';return}
- const master=parts.filter(p=>String(p.part||'').toLowerCase().includes(q)||String(p.description||'').toLowerCase().includes(q)||barcodeMatches(p.barcode,q)).slice(0,50).map(p=>({part:p.part,description:p.description,barcode:p.barcode,supplier:p.supplier,source:'MechanicDesk',price:p.price||'',sectionId:p.sectionId||''}));
+ const mechMeta=readJ(MECH_META_KEY,{sectionId:'work'}),userSections=Array.isArray(sessionUser?.sections)?sessionUser.sections:[];
+ const master=parts.filter(p=>sessionUser?.role==='admin'||userSections.includes(p.sectionId||mechMeta.sectionId||'work')).filter(p=>String(p.part||'').toLowerCase().includes(q)||String(p.description||'').toLowerCase().includes(q)||barcodeMatches(p.barcode,q)).slice(0,50).map(p=>({part:p.part,description:p.description,barcode:p.barcode,supplier:p.supplier,source:'MechanicDesk',price:p.price||'',sectionId:p.sectionId||mechMeta.sectionId||'work'}));
  const approved=readJ('stockscan_approved_parts_v129',[]);
  const allowed=sessionUser?.role==='admin'?null:(Array.isArray(sessionUser?.sections)?sessionUser.sections:[]);
  const secs=readJ(SECTIONS_KEY,[]);
@@ -145,7 +160,7 @@ $('#doPartSearch').onclick=()=>{
  }).join(''):'<p>No matches.</p>';
  $$('.find-part-result').forEach(b=>b.onclick=()=>showPartDetail(window.findPartHits[Number(b.dataset.findIndex)]));
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.62');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.63');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -362,8 +377,8 @@ $('#createAdmin').onclick=createFirstAdmin;$('#loginBtn').onclick=doLogin;$('#lo
 $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if(!name){toast('Enter section name');return}const secs=readJ(SECTIONS_KEY,[]);if(secs.some(s=>s.name.toLowerCase()===name.toLowerCase())){toast('Section already exists');return}const id=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+Date.now().toString(36);secs.push({id,name,sells:$('#sectionSells').checked});writeJ(SECTIONS_KEY,secs);$('#newSectionName').value='';$('#sectionSells').checked=false;setupAdminScreens();toast('SECTION CREATED ✓')};
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
-const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.62';
+const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='search')renderMechanicDeskSection();if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
+const APP_VERSION='1.63';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
