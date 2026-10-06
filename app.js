@@ -145,7 +145,7 @@ $('#doPartSearch').onclick=()=>{
  }).join(''):'<p>No matches.</p>';
  $$('.find-part-result').forEach(b=>b.onclick=()=>showPartDetail(window.findPartHits[Number(b.dataset.findIndex)]));
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.61');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.62');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -278,6 +278,8 @@ $('#saveForcedPassword').onclick=async()=>{if(!sessionUser)return showLogin();co
 function logout(){sessionUser=null;showLogin()}
 function renderSectionChecks(){const d=$('#sectionChecks');if(!d)return;const secs=readJ(SECTIONS_KEY,[]);d.innerHTML='<b>Section access</b>'+secs.map(s=>`<label class="sectionPerm"><input type="checkbox" class="newUserSection" value="${esc(s.id)}"><span>${esc(s.name)}</span></label>`).join('')}
 function renderFieldChecks(){const d=$('#fieldChecks');if(!d)return;d.innerHTML=SEARCH_FIELDS.map(f=>`<label><input type="checkbox" class="newUserField" value="${esc(f)}" checked><span>${esc(f)}</span></label>`).join('')}
+
+$('#openEditUsers').onclick=()=>{renderUsers();go('editusers');};
 function renderUsers(){const d=$('#userList');if(!d)return;const users=readJ(USERS_KEY,[]),secs=readJ(SECTIONS_KEY,[]);d.innerHTML=users.map(u=>`<div class="card"><b>${esc(u.username)}</b> <span class="pill">${esc(u.role)}</span> ${u.enabled===false?'<span class="pill">DISABLED</span>':''}<br><small>Sections: ${esc((u.sections||[]).map(id=>secs.find(s=>s.id===id)?.name||id).join(', ')||'None')}</small><br><small>Find Part fields: ${esc((u.fields||[]).join(', ')||'None')}</small><button class="editUserBtn secondary" data-user-id="${esc(u.id)}">EDIT USER</button></div>`).join('');$$('.editUserBtn').forEach(b=>b.onclick=()=>openEditUser(b.dataset.userId))}
 
 function renderEditChecks(user){
@@ -300,9 +302,13 @@ function renderUserSettingsHistory(userId){
  box.innerHTML=hist.map(h=>{
   const b=h.before||{},a=h.after||{},changes=[];
   if(b.role!==a.role)changes.push(`Role: ${esc(b.role||'—')} → ${esc(a.role||'—')}`);
-  if(b.enabled!==a.enabled)changes.push(`Enabled: ${b.enabled?'Yes':'No'} → ${a.enabled?'Yes':'No'}`);
-  if(JSON.stringify(b.sections||[])!==JSON.stringify(a.sections||[]))changes.push(`Sections: ${esc((b.sections||[]).join(', ')||'None')} → ${esc((a.sections||[]).join(', ')||'None')}`);
-  if(JSON.stringify(b.fields||[])!==JSON.stringify(a.fields||[]))changes.push(`Find fields: ${esc((b.fields||[]).join(', ')||'None')} → ${esc((a.fields||[]).join(', ')||'None')}`);
+  if(b.enabled!==a.enabled)changes.push(`Account: ${b.enabled?'Enabled':'Disabled'} → ${a.enabled?'Enabled':'Disabled'}`);
+  const bs=new Set(b.sections||[]),as=new Set(a.sections||[]);
+  [...as].filter(x=>!bs.has(x)).forEach(x=>changes.push(`Section added: ${esc(x)}`));
+  [...bs].filter(x=>!as.has(x)).forEach(x=>changes.push(`Section removed: ${esc(x)}`));
+  const bf=new Set(b.fields||[]),af=new Set(a.fields||[]);
+  [...af].filter(x=>!bf.has(x)).forEach(x=>changes.push(`${esc(x)}: OFF → ON`));
+  [...bf].filter(x=>!af.has(x)).forEach(x=>changes.push(`${esc(x)}: ON → OFF`));
   return `<div class="history-entry"><b>${new Date(h.at).toLocaleString()}</b><br><small>By ${esc(h.changedBy||'Admin')}</small><br>${changes.join('<br>')||'Settings restored'}<button type="button" class="secondary restoreUserSettings" data-history-id="${esc(h.id)}">RESTORE PREVIOUS SETTINGS</button></div>`;
  }).join('');
  $$('.restoreUserSettings').forEach(b=>b.onclick=()=>restoreUserSettings(b.dataset.historyId));
@@ -327,7 +333,7 @@ $('#saveUserChanges').onclick=()=>{
   const otherActiveAdmins=users.filter((u,i)=>i!==idx&&u.role==='admin'&&u.enabled!==false).length;
   if(users[idx].role==='admin'&&users[idx].enabled!==false&&(role!=='admin'||!enabled)&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
   users[idx]={...users[idx],role,enabled,sections:[...$$('.editUserSection:checked')].map(x=>x.value),fields:[...$$('.editUserField:checked')].map(x=>x.value)};
-  const after=userSettingsSnapshot(users[idx]);writeJ(USERS_KEY,users);if(JSON.stringify(before)!==JSON.stringify(after))addUserSettingsHistory(users[idx],before,after);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('users');
+  const after=userSettingsSnapshot(users[idx]);writeJ(USERS_KEY,users);if(JSON.stringify(before)!==JSON.stringify(after))addUserSettingsHistory(users[idx],before,after);if(sessionUser?.id===id)sessionUser=users[idx];$('#editUserMsg').textContent='Permissions saved.';renderUsers();toast('USER PERMISSIONS UPDATED ✓');go('editusers');
 };
 
 $('#resetUserPassword').onclick=async()=>{
@@ -347,7 +353,7 @@ $('#deleteUser').onclick=()=>{
   const otherActiveAdmins=users.filter((u,i)=>i!==idx&&u.role==='admin'&&u.enabled!==false).length;
   if(target.role==='admin'&&target.enabled!==false&&otherActiveAdmins===0){$('#editUserMsg').textContent='Keep at least one enabled Admin account.';return}
   if(!confirm(`Delete user "${target.username}"?\n\nThis removes their Stock Scan login from this device prototype.`))return;
-  users.splice(idx,1);writeJ(USERS_KEY,users);renderUsers();toast('USER DELETED ✓');go('users');
+  users.splice(idx,1);writeJ(USERS_KEY,users);renderUsers();toast('USER DELETED ✓');go('editusers');
 };
 
 function renderSections(){const d=$('#sectionList');if(!d)return;const secs=readJ(SECTIONS_KEY,[]);d.innerHTML=secs.map(s=>`<div class="card"><b>${esc(s.name)}</b><br><small>${s.sells?'Sells parts — Buy and Sell prices available':'Does not sell parts — Sell price not required'}</small></div>`).join('')}
@@ -357,7 +363,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.61';
+const APP_VERSION='1.62';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';

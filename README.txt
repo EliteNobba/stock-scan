@@ -1,20 +1,21 @@
-STOCK SCAN — v1.61
+STOCK SCAN — v1.62
 
-NORMAL USER PART DETAILS FIX
-- Fixes Normal User results opening with no visible details.
-- Existing permission values such as "Part Number" and "Buy Price" are now mapped to the internal PART DETAILS field keys.
-- Canonical saved `fields` permissions and latest-user refresh retained.
-- v1.60 User Settings History / Restore retained.
+USERS & PERMISSIONS ORGANISATION + CLEARER HISTORY
+- USERS & PERMISSIONS is now a simple menu with CREATE USER and EDIT USERS.
+- Existing create-user controls moved to CREATE USER.
+- Existing user list moved to EDIT USERS.
+- Edit User returns to EDIT USERS.
+- USER SETTINGS HISTORY now lists only what changed, e.g. Buy Price: OFF → ON, rather than repeating every field still enabled.
+- Restore Previous Settings retained.
+- v1.61 Normal User Part Details permission fix retained.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm v1.61 and ✓ Up to date.
-2. Admin > Normal User: enable Part Number, Description, Supplier and Barcode; turn Buy Price OFF; SAVE.
-3. Login as Normal User > FIND A PART > AL400C.
-4. Tap first result. PART DETAILS must show permitted fields.
-5. Back > tap second result. Details must show.
-6. Confirm Buy Price is NOT shown.
-7. Admin > same user > turn Buy Price ON > SAVE.
-8. Login as Normal User > AL400C > open result. Buy Price MUST show.
-9. Admin > same user > USER SETTINGS HISTORY; confirm changes recorded.
-10. Camera barcode search > open result.
-11. Quick SCAN PARTS regression.
+1. Confirm v1.62 and ✓ Up to date.
+2. Admin > USERS & PERMISSIONS. Confirm only CREATE USER and EDIT USERS are shown.
+3. Open CREATE USER and confirm the original create-user controls are there.
+4. Back > EDIT USERS and confirm existing users are listed.
+5. Edit a Normal User > change only Buy Price ON/OFF > SAVE.
+6. Re-open that user > USER SETTINGS HISTORY. Confirm it says only Buy Price: ON → OFF (or OFF → ON), not the complete field list.
+7. Test RESTORE PREVIOUS SETTINGS.
+8. Login as Normal User > FIND A PART > AL400C > confirm details and Buy Price permission still work.
+9. Camera barcode search and SCAN PARTS regression.
