@@ -93,3 +93,6 @@ button.find-part-result b{
 #searchResults button.find-part-result.find-result-white{
   background-color:#ffffff !important;
 }
+
+#searchResults button.find-part-result.find-result-shaded{background-color:#d5dde3 !important;}
+#searchResults button.find-part-result.find-result-white{background-color:#fff !important;}
