@@ -1,23 +1,20 @@
-STOCK SCAN — v1.63
+STOCK SCAN — v1.64
 
-SECTION-AWARE MECHANICDESK DATA
-- FIND A PART MechanicDesk import can now be assigned to a Section.
-- The selected section is remembered.
-- Existing older MechanicDesk imports default to Work.
-- Admin can search all imported MechanicDesk parts.
-- Normal Users only see MechanicDesk results if they have access to that Section.
-- Approved Add Part section filtering remains.
-- v1.62 Users & Permissions and settings history/restore retained.
+SECTION VISIBILITY IN FIND A PART
+- FIND A PART shows which Sections the logged-in user can search.
+- Result cards identify their Section.
+- PART DETAILS shows the Section.
+- v1.63 section access filtering remains unchanged.
+- MechanicDesk import controls remain visible to Normal Users during development/testing only; final production will hide them.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Confirm v1.63 and ✓ Up to date.
-2. Admin > FIND A PART. Confirm 'Import into section' appears.
-3. Select Work and import export.xls.
-4. Confirm status shows the number of parts and 'Section: Work'.
-5. Admin search AL400C and open both results.
-6. Normal User WITH Work access > search AL400C. Results must appear and open.
-7. Admin > EDIT USERS > remove Work access from that Normal User > SAVE.
-8. Login as Normal User > search AL400C. MechanicDesk Work results must NOT appear.
-9. Admin > restore Work access. Normal User AL400C results must return.
-10. Confirm User Settings History records the Work access change.
-11. Camera barcode search and SCAN PARTS regression.
+1. Confirm v1.64 and ✓ Up to date.
+2. Admin > FIND A PART. 'Searching sections:' should list all Sections.
+3. Search AL400C. Results should identify Work.
+4. Open both results. PART DETAILS should show Section: Work.
+5. Normal User with Work access > FIND A PART. 'Searching sections:' should include Work.
+6. Search AL400C; results/details should show Work.
+7. Admin removes Work access from that user.
+8. Normal User > FIND A PART. Work must disappear and AL400C Work results must not appear.
+9. Restore Work access and confirm results return.
+10. Camera barcode search and SCAN PARTS regression.

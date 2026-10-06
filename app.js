@@ -75,6 +75,11 @@ function renderMechanicDeskSection(){
   const sec=secs.find(x=>x.id===(meta.sectionId||'work'));
   s.textContent=`${parts.length} MechanicDesk parts loaded${sec?' — Section: '+sec.name:''}.`;
  }
+ const access=$('#findSectionAccess');
+ if(access){
+  const allowed=sessionUser?.role==='admin'?secs:secs.filter(x=>(sessionUser?.sections||[]).includes(x.id));
+  access.textContent=` Searching sections: ${allowed.map(x=>x.name).join(', ')||'None'}`;
+ }
 }
 function loadMechanicDeskParts(){
  const saved=readJ(MECH_PARTS_KEY,[]);
@@ -121,6 +126,9 @@ async function showPartDetail(p){
  if(canFindField('description'))rows.push(detailRow('Description',p.description??p.name));
  if(canFindField('barcode'))rows.push(detailRow('Barcode',p.barcode));
  if(canFindField('supplier'))rows.push(detailRow('Supplier',p.supplier));
+ const detailSections=readJ(SECTIONS_KEY,[]),detailSectionId=p.sectionId||readJ(MECH_META_KEY,{sectionId:'work'}).sectionId||'work';
+ const detailSection=detailSections.find(s=>s.id===detailSectionId);
+ rows.push(detailRow('Section',detailSection?.name||detailSectionId||'—'));
  if(canFindField('buyPrice'))rows.push(detailRow('Buy Price',moneyValue(p.price??p.buyPrice)));
  if(canFindField('sellPrice')&&(p.sellPrice!==undefined&&p.sellPrice!==''))rows.push(detailRow('Sell Price',moneyValue(p.sellPrice)));
  if(canFindField('category'))rows.push(detailRow('Category',p.category));
@@ -156,11 +164,11 @@ $('#doPartSearch').onclick=()=>{
   const ds=p.description??p.name??'';
   const bc=p.barcode??'';
   const sp=p.supplier??'';
-  return `<button type="button" class="card find-part-result" data-find-index="${i}"><b>${esc(pn)}</b><br>${esc(ds)}<br><small>${bc?`Barcode: ${esc(bc)} · `:''}${sp?`${esc(sp)} · `:''}${esc(p.source||'')}</small><br><small>VIEW DETAILS ›</small></button>`;
+  return `<button type="button" class="card find-part-result" data-find-index="${i}"><b>${esc(pn)}</b><br>${esc(ds)}<br><small>${bc?`Barcode: ${esc(bc)} · `:''}${sp?`${esc(sp)} · `:''}${esc(p.source||'')}${p.sectionId?' — '+esc((readJ(SECTIONS_KEY,[]).find(s=>s.id===p.sectionId)?.name)||p.sectionId):''}</small><br><small>VIEW DETAILS ›</small></button>`;
  }).join(''):'<p>No matches.</p>';
  $$('.find-part-result').forEach(b=>b.onclick=()=>showPartDetail(window.findPartHits[Number(b.dataset.findIndex)]));
 };
-if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.63');
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js?v=1.64');
 
 // ===== v1.5 Direct OneDrive connection =====
 // Uses Microsoft identity platform + Microsoft Graph delegated permission.
@@ -378,7 +386,7 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='search')renderMechanicDeskSection();if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.63';
+const APP_VERSION='1.64';
 
 // ===== v1.29 Add Part -> Pending Admin Approval foundation =====
 const PENDING_PARTS_KEY='stockscan_pending_parts_v129', APPROVED_PARTS_KEY='stockscan_approved_parts_v129';
