@@ -1,5 +1,5 @@
-const CACHE='stock-scan-v2.0';
-const ASSETS=['styles.css?v=2.0','app.js?v=2.0','manifest.webmanifest?v=2.0'];
+const CACHE='stock-scan-v2.01';
+const ASSETS=['styles.css?v=2.01','app.js?v=2.01','manifest.webmanifest?v=2.01'];
 
 self.addEventListener('install',e=>{
  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));

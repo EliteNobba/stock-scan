@@ -1,8 +1,8 @@
 <!doctype html><html lang="en"><head>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1f4e79"><title>Stock Scan</title><link rel="manifest" href="manifest.webmanifest?v=2.0"><link rel="stylesheet" href="styles.css?v=2.0"></head><body>
-<header><h1>Stock Scan</h1><small>STOCK SCAN — v2.0</small><div class="headerUpdateRow"><button id="headerUpdate" class="headerUpdate" type="button">↻ CHECK UPDATE</button><small id="headerUpdateStatus" class="headerUpdateStatus"></small></div></header><main>
+<meta http-equiv="Expires" content="0"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1f4e79"><title>Stock Scan</title><link rel="manifest" href="manifest.webmanifest?v=2.01"><link rel="stylesheet" href="styles.css?v=2.01"></head><body>
+<header><h1>Stock Scan</h1><small>STOCK SCAN — v2.01</small><div class="headerUpdateRow"><button id="headerUpdate" class="headerUpdate" type="button">↻ CHECK UPDATE</button><small id="headerUpdateStatus" class="headerUpdateStatus"></small></div></header><main>
 <section id="login" class="screen active">
 <div id="liveLoginCard" class="card">
  <h3>LIVE STOCK SCAN LOGIN</h3>
@@ -42,9 +42,9 @@
 <section id="scanparts" class="screen"><h2>Scan Parts</h2><button id="newScanNow">NEW SCAN</button><button data-go="current">CURRENT SCAN</button><button data-go="saved">SAVED SCANS</button><button data-go="stocktake">STOCKTAKE</button><button class="secondary" data-go="home">HOME</button></section>
 <section id="usersettings" class="screen"><h2>User Settings</h2>
 <div class="card"><b>ACCOUNT</b><p class="small">Signed in as <span id="userSettingsName"></span></p><button id="userChangePassword">CHANGE PASSWORD</button></div>
-<div class="card"><b>APP UPDATE</b><p id="userUpdateStatus" class="small">Current version: v2.0</p><button id="userCheckUpdate">CHECK FOR UPDATE</button></div>
+<div class="card"><b>APP UPDATE</b><p id="userUpdateStatus" class="small">Current version: v2.01</p><button id="userCheckUpdate">CHECK FOR UPDATE</button></div>
 <button class="secondary" data-go="home">HOME</button></section>
-<section id="settings" class="screen"><h2>Settings</h2><div class="card"><b>App Update</b><p id="updateStatus" class="small">Current version: v2.0</p><button id="checkUpdate">CHECK FOR UPDATE</button></div><button data-go="datafiles">DATA FILES</button><div class="card"><b>More settings will live here</b><p class="small">Shared storage and Backup / Restore will be added here as they are completed.</p></div><button class="secondary" data-go="home">HOME</button></section>
+<section id="settings" class="screen"><h2>Settings</h2><div class="card"><b>App Update</b><p id="updateStatus" class="small">Current version: v2.01</p><button id="checkUpdate">CHECK FOR UPDATE</button></div><button data-go="datafiles">DATA FILES</button><div class="card"><b>More settings will live here</b><p class="small">Shared storage and Backup / Restore will be added here as they are completed.</p></div><button class="secondary" data-go="home">HOME</button></section>
 <section id="scanner" class="screen"><h2>Scan Barcode</h2><div class="videoWrap"><video id="video" playsinline muted autoplay></video><div class="target"></div></div><div id="scanStatus">Starting scanner…</div><div id="scanDiag" class="small"></div><button id="stopAndCurrent" class="secondary">CANCEL / CURRENT SCAN</button><label>Manual barcode<input id="manualBarcode" inputmode="numeric" placeholder="Enter barcode"></label><button id="useManual">USE BARCODE</button></section>
 <section id="item" class="screen"><h2>Item</h2><div class="card"><div class="kv"><b>Barcode</b><span id="itemBarcode"></span><b>Part No</b><span id="itemPart">NOT FOUND</span><b>Description</b><span id="itemDesc">Unmatched item</span><b>Supplier</b><span id="itemSupplier">—</span><b>Unit Price</b><span id="itemPrice">—</span></div></div><div class="qty"><button id="minus">−</button><input id="qty" type="number" min="1" value="1"><button id="plus">+</button></div><label class="photoBtn">TAKE PHOTO<input id="photo" type="file" accept="image/*" capture="environment" hidden></label><img id="photoPreview" class="preview" hidden><button id="addItem">ADD TO SCAN</button><div id="itemAddedBox" class="successBanner" hidden><div class="successTick">✓</div><h2>ITEM ADDED TO SCAN</h2><div id="itemAddedSummary"></div><button id="scanAnotherItem">SCAN ANOTHER ITEM</button><button id="currentAfterItem">CURRENT SCAN</button><button id="saveAfterItem">SAVE SCAN</button></div><button class="secondary" data-go="current">CURRENT SCAN</button><button class="secondary" data-go="scanparts">BACK TO SCAN PARTS</button></section>
 <section id="afteradd" class="screen"><div class="successBanner"><div class="successTick">✓</div><h2>ITEM ADDED</h2><div id="addedSummary">Added to current scan</div></div><button id="scanNext">SCAN NEXT ITEM</button><button data-go="current">CURRENT SCAN</button><button id="saveAfterAdd">SAVE SCAN</button><button class="secondary" data-go="home">HOME</button></section>
@@ -70,7 +70,7 @@
 <p id="findDataPrompt" class="small"></p>
 <p id="findSectionAccess" class="small"></p></div><div id="searchResults"></div><button class="secondary" data-go="home">HOME</button></section>
 <section id="datafiles" class="screen"><h2>Data Files</h2><div class="card"><b>OneDrive Direct Connection</b><p class="small">Connect Stock Scan directly to your private OneDrive app folder. Your Microsoft password is never stored by Stock Scan.</p><label>Microsoft Application (client) ID<input id="oneDriveClientId" placeholder="Paste client ID once"></label><button id="saveOneDriveSetup">SAVE ONEDRIVE SETUP</button><button id="connectOneDrive">CONNECT ONEDRIVE</button><button id="disconnectOneDrive" class="secondary">DISCONNECT</button><div id="oneDriveStatus" class="small">OneDrive not configured.</div><button id="refreshOneDriveParts">REFRESH EXPORT.XLS FROM ONEDRIVE</button></div><div class="card" id="mechanicDeskAdminSetup"><b>FIND A PART — MECHANICDESK DATA</b><p class="small">Admin setup. Choose the MechanicDesk export and assign it to the correct Section.</p><label>MechanicDesk Parts File (.xls / .xlsx)<input id="mechanicDeskFile" type="file" accept=".xls,.xlsx"></label><label>Import into section<select id="mechanicDeskSection"></select></label>
-<button id="importMechanicDesk">IMPORT PARTS FILE</button><p id="mechanicDeskImportStatus" class="small"></p></div><div class="card"><b>MechanicDesk master parts</b><p class="small">Load your existing export.xls. It is read locally on this iPhone and is not uploaded to GitHub.</p><label class="photoBtn">CHOOSE EXPORT.XLS<input id="partsFile" type="file" accept=".xls,.xlsx" hidden></label><div id="partsStatus" class="small">No parts file loaded yet.</div></div><div class="card"><b>LoMag scan</b><p class="small">Load an existing LoMag .xls/.xlsx scan and add it to Saved Scans.</p><label class="photoBtn">CHOOSE LOMAG FILE<input id="lomagFile" type="file" accept=".xls,.xlsx" hidden></label><div id="lomagStatus" class="small">No LoMag file loaded.</div></div><div class="card"><b>Shared-file status</b><p class="small">v2.0 retains both Excel file formats in the phone app. Automatic PC/iPhone sharing will be connected next through your private OneDrive location; private files are never stored in this public GitHub repository.</p></div><button class="secondary" data-go="settings">BACK TO SETTINGS</button></section>
+<button id="importMechanicDesk">IMPORT PARTS FILE</button><p id="mechanicDeskImportStatus" class="small"></p></div><div class="card"><b>MechanicDesk master parts</b><p class="small">Load your existing export.xls. It is read locally on this iPhone and is not uploaded to GitHub.</p><label class="photoBtn">CHOOSE EXPORT.XLS<input id="partsFile" type="file" accept=".xls,.xlsx" hidden></label><div id="partsStatus" class="small">No parts file loaded yet.</div></div><div class="card"><b>LoMag scan</b><p class="small">Load an existing LoMag .xls/.xlsx scan and add it to Saved Scans.</p><label class="photoBtn">CHOOSE LOMAG FILE<input id="lomagFile" type="file" accept=".xls,.xlsx" hidden></label><div id="lomagStatus" class="small">No LoMag file loaded.</div></div><div class="card"><b>Shared-file status</b><p class="small">v2.01 retains both Excel file formats in the phone app. Automatic PC/iPhone sharing will be connected next through your private OneDrive location; private files are never stored in this public GitHub repository.</p></div><button class="secondary" data-go="settings">BACK TO SETTINGS</button></section>
 </main>
 <div id="photoViewer" class="photoViewer" hidden role="dialog" aria-modal="true" aria-label="Photo viewer">
   <div class="photoViewerInner">
@@ -80,4 +80,40 @@
 </div>
 <div id="toast"></div>
 <script src="https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@4.25.0/lib/msal-browser.min.js"></script><script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="app.js?v=2.0"></script></body></html>
+<script src="app.js?v=2.01"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+ const btn=document.getElementById('liveLoginBtn');
+ const status=document.getElementById('liveLoginStatus');
+ if(!btn||!status)return;
+ btn.onclick=async function(){
+  const email=(document.getElementById('liveLoginEmail').value||'').trim();
+  const password=document.getElementById('liveLoginPassword').value||'';
+  if(!email||!password){status.textContent='Enter your email and password.';return;}
+  status.textContent='Connecting to PocketBase…';
+  btn.disabled=true;
+  try{
+   const r=await fetch('https://debqcnsx703a3l3.ba7w.pocketbasecloud.com/api/collections/users/auth-with-password',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({identity:email,password:password})
+   });
+   const data=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(data.message||('HTTP '+r.status));
+   if(!data.record)throw new Error('PocketBase returned no user record');
+   if(data.record.enabled!==true)throw new Error('This Stock Scan account is disabled');
+   localStorage.setItem('stockscan_pb_auth_v201',JSON.stringify({token:data.token,record:data.record}));
+   status.textContent='Connected ✓ '+(data.record.username||data.record.name||data.record.email)+' — '+(data.record.role||'Normal');
+   // v2.01 proof screen: don't depend on legacy local-user startup to prove shared auth.
+   const legacy=document.querySelector('#login .card:not(#liveLoginCard)');
+   if(legacy)legacy.style.display='none';
+   const card=document.getElementById('liveLoginCard');
+   card.insertAdjacentHTML('beforeend','<p id="liveProof"><strong>LIVE BACKEND LOGIN SUCCESSFUL</strong><br>Shared PocketBase user authenticated.</p>');
+  }catch(e){
+   status.textContent='Login failed — '+(e.message||'Unknown error');
+  }finally{btn.disabled=false;}
+ };
+});
+</script>
+
+</body></html>
