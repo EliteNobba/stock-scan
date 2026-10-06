@@ -1,19 +1,25 @@
-STOCK SCAN — v1.71
+STOCK SCAN — v1.72
 
-UPDATER RECOVERY FIX
-- Fixes the update loop where UPDATE says Updating to v1.70 and then returns to Update available.
-- Root cause: the updater called serviceWorker.update() and immediately reloaded while the old service worker could still control the installed PWA.
-- UPDATE now unregisters the old Stock Scan service worker, clears Stock Scan caches, then performs a cache-busted network navigation.
-- Local app data, users, imported parts and IndexedDB photos are NOT cleared.
-- v1.70 PART DETAILS photo fix is retained.
-- Alternating Find a Part shading is retained.
+SERVICE WORKER / UPDATER REDESIGN
+- Prevents old index.html versions from being restored by the service worker.
+- index.html/navigation is now always network-only and is never stored in the Stock Scan service-worker cache.
+- Only versioned static assets are cached.
+- Activation removes older Stock Scan caches.
+- UPDATE asks the registration to update, waits for service-worker controllerchange, and reloads only after the new worker actually takes control.
+- If iOS does not transfer control promptly, the app says: “vX ready — close and reopen Stock Scan”.
+- No localStorage or IndexedDB data is cleared.
+- v1.71 photo/detail fix and Find result shading are retained.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Publish v1.71.
-2. On the currently stuck app, wait for Update available — v1.71.
-3. Press UPDATE once.
-4. Confirm the app opens as STOCK SCAN — v1.71 and shows Up to date.
-5. Close and reopen the Home Screen app; confirm it remains v1.71.
-6. Admin > FIND A PART > approved Add Part with photo > PART DETAILS; confirm photo appears.
-7. Confirm multiple Find results alternate shaded / white.
-8. Quick AL400C, camera barcode and SCAN PARTS regression.
+1. Leave GitHub on v1.71 until ready to publish v1.72.
+2. Publish all v1.72 files together.
+3. On the phone, wait for Update available — v1.72.
+4. Press UPDATE once.
+5. Either:
+   A) it changes to v1.72 itself, or
+   B) it says “v1.72 ready — close and reopen Stock Scan”; close/reopen once.
+6. Confirm STOCK SCAN — v1.72 and Up to date.
+7. Close/reopen the app TWO more times. It must remain v1.72 every time.
+8. Admin > FIND A PART > approved Add Part with photo > PART DETAILS; photo must appear.
+9. Confirm Find results alternate shaded / white.
+10. Quick AL400C, camera barcode and SCAN PARTS regression.
