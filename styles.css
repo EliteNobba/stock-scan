@@ -83,3 +83,13 @@ button.find-part-result b{
   object-fit:contain;
   margin-top:8px;
 }
+
+/* v1.69 — retained strong alternating Find a Part result shading */
+#searchResults button.find-part-result:nth-of-type(odd),
+#searchResults button.find-part-result.find-result-shaded{
+  background-color:#d9e0e5 !important;
+}
+#searchResults button.find-part-result:nth-of-type(even),
+#searchResults button.find-part-result.find-result-white{
+  background-color:#ffffff !important;
+}
