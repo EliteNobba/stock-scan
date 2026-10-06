@@ -67,3 +67,19 @@ button.find-part-result b{
 #searchResults .find-part-result:nth-child(even){
   background:#ffffff;
 }
+
+/* v1.68 — explicit alternating Find a Part result backgrounds */
+#searchResults button.find-part-result.find-result-shaded{
+  background:#e3e8ec !important;
+}
+#searchResults button.find-part-result.find-result-white{
+  background:#ffffff !important;
+}
+
+#partDetailPhoto .part-detail-photo{
+  display:block;
+  width:100%;
+  max-height:360px;
+  object-fit:contain;
+  margin-top:8px;
+}

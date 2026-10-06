@@ -1,17 +1,20 @@
-STOCK SCAN — v1.67
+STOCK SCAN — v1.68
 
-FIND A PART RESULT SHADING
-- Search result cards now alternate between a light shaded background and white.
-- Result 1 shaded, Result 2 white, Result 3 shaded, Result 4 white, and so on.
-- All v1.66 Find a Part, section access, Admin data settings and updater behaviour retained.
-- v1.66's 15-second automatic update checker remains active.
+FIND A PART PHOTOS + RESULT SHADING FIX
+- Approved custom Add Part records can now show their stored photo in PART DETAILS when the logged-in user has Photo permission.
+- Photo remains hidden when Photo permission is disabled.
+- Find a Part result shading now uses explicit per-result classes and stronger CSS so the existing card/button styling cannot override it.
+- Alternates shaded / white / shaded / white.
+- v1.67 automatic 15-second update checking retained.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Before updating, leave v1.66 open for about 15 seconds after v1.67 has been published.
-2. Confirm v1.66 automatically changes the top status to Update available — v1.67 and the button to UPDATE, without pressing CHECK UPDATE and without a popup.
-3. Press UPDATE and confirm STOCK SCAN — v1.67 and ✓ Up to date.
-4. FIND A PART > search AL400C or another search returning multiple results.
-5. Confirm Result 1 is lightly shaded, Result 2 white, Result 3 shaded, Result 4 white, etc.
-6. Open both AL400C results and confirm details still work.
-7. Test camera barcode search.
-8. Quick SCAN PARTS regression.
+1. Leave v1.67 open while v1.68 is published. Confirm it detects v1.68 automatically within about 15 seconds and changes to UPDATE.
+2. Update and confirm v1.68 and ✓ Up to date.
+3. FIND A PART > search AL400C or another search with multiple results.
+4. Confirm results visibly alternate shaded / white / shaded / white.
+5. Find an APPROVED part that was submitted through ADD A PART with a photo.
+6. Admin > open that part in FIND A PART > PART DETAILS. Confirm its photo appears.
+7. Normal User with Photo permission ON > find/open that approved part. Photo must appear.
+8. Turn that user's Photo permission OFF > save.
+9. Login as that Normal User > open the same part. Photo must NOT appear.
+10. Confirm AL400C MechanicDesk details, camera barcode search and SCAN PARTS still work.
