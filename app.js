@@ -400,7 +400,28 @@ $('#createSection').onclick=()=>{const name=$('#newSectionName').value.trim();if
 $('#createUser').onclick=async()=>{const name=$('#newUsername').value.trim(),temp=$('#newTempPassword').value;if(!name){$('#userMsg').textContent='Enter a username.';return}if(temp.length<4){$('#userMsg').textContent='Enter a temporary password of at least 4 characters.';return}const users=readJ(USERS_KEY,[]);if(users.some(u=>u.username.toLowerCase()===name.toLowerCase())){$('#userMsg').textContent='That username already exists.';return}const passHash=await hashPass(temp);const sections=[...$$('.newUserSection:checked')].map(x=>x.value),fields=[...$$('.newUserField:checked')].map(x=>x.value);users.push({id:'u-'+Date.now(),username:name,role:$('#newRole').value,passHash,sections,fields,mustChangePassword:true,enabled:true});writeJ(USERS_KEY,users);$('#newUsername').value='';$('#newTempPassword').value='';$('#userMsg').textContent='User created. They must change the temporary password at first login.';renderUsers();toast('USER CREATED ✓')};
 // Refresh admin screens whenever their pages are opened.
 const oldGo=go;go=function(id){if(sessionUser?.mustChangePassword===true&&id!=='changepassword'&&id!=='login'){oldGo('changepassword');return}if((id==='users'||id==='sections'||id==='edituser'||id==='adminsettings'||id==='reviewedparts'||id==='editreviewedpart')&&sessionUser?.role!=='admin'){toast('Admin access required');return}oldGo(id);if(id==='search'||id==='datafiles')renderMechanicDeskSection();if(id==='users'||id==='sections'||id==='adminsettings')setupAdminScreens();if(id==='pendingparts')renderPendingParts();if(id==='reviewedparts')renderReviewedParts();if(id==='home'){updatePendingBadge();const rb=$('#homeReviewedBtn');if(rb)rb.hidden=sessionUser?.role!=='admin';const rt=$('#reviewedHomeText');if(rt&&sessionUser?.role==='admin'){const rr=readJ(APPROVED_PARTS_KEY,[]),ap=rr.filter(x=>x.status==='approved').length,rj=rr.filter(x=>x.status==='rejected').length;rt.textContent=`${rr.length} reviewed — ${ap} approved, ${rj} rejected`;}}};
-const APP_VERSION='1.74';
+const APP_VERSION='2.0';
+
+const POCKETBASE_URL='https://debqcnsx703a3l3.ba7w.pocketbasecloud.com';
+const PB_AUTH_KEY='stockscan_pb_auth_v200';
+
+function loadPocketBaseAuth(){
+ try{return JSON.parse(localStorage.getItem(PB_AUTH_KEY)||'null')}catch(e){return null}
+}
+function savePocketBaseAuth(data){ localStorage.setItem(PB_AUTH_KEY,JSON.stringify(data)); }
+function clearPocketBaseAuth(){ localStorage.removeItem(PB_AUTH_KEY); }
+async function pocketBaseLogin(identity,password){
+ const r=await fetch(`${POCKETBASE_URL}/api/collections/users/auth-with-password`,{
+  method:'POST', headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({identity,password})
+ });
+ const data=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(data.message||'Login failed');
+ if(!data.record||data.record.enabled!==true)throw new Error('This Stock Scan account is disabled');
+ savePocketBaseAuth({token:data.token,record:data.record});
+ return data.record;
+}
+
 
 function recoverExistingAuthMarker(){
  try{
@@ -742,3 +763,27 @@ document.addEventListener('click',e=>{if(e.target?.id==='importMechanicDesk')imp
 window.addEventListener('load',loadMechanicDeskParts);
 
 document.addEventListener('click',e=>{if(e.target?.id==='scanFindBarcode')startFindBarcodeScanner();if(e.target?.id==='cancelFindBarcode')stopFindBarcodeScanner();});
+
+(function setupLiveLogin(){
+ const btn=document.getElementById('liveLoginBtn');
+ if(!btn)return;
+ btn.onclick=async()=>{
+  const email=(document.getElementById('liveLoginEmail')?.value||'').trim();
+  const password=document.getElementById('liveLoginPassword')?.value||'';
+  const status=document.getElementById('liveLoginStatus');
+  if(!email||!password){status.textContent='Enter your email and password.';return}
+  status.textContent='Connecting to live Stock Scan…'; btn.disabled=true;
+  try{
+   const record=await pocketBaseLogin(email,password);
+   sessionUser={id:record.id,username:record.username||record.name||record.email,
+    name:record.name||record.username||'',email:record.email,role:record.role||'Normal',
+    enabled:record.enabled===true,live:true,sections:record.sections||[],fields:record.fields||[]};
+   status.textContent=`Connected ✓ ${sessionUser.username} — ${sessionUser.role}`;
+   const setup=document.querySelector('#login .card:not(#liveLoginCard)');
+   if(setup)setup.style.display='none';
+   if(typeof renderHome==='function')renderHome();
+   go('home');
+  }catch(e){ status.textContent='Login failed — '+(e.message||'check email/password'); }
+  finally{btn.disabled=false}
+ };
+})();

@@ -1,23 +1,19 @@
-STOCK SCAN — v1.74
+STOCK SCAN — v2.0 LIVE BACKEND TEST
 
-ACCOUNT STARTUP RECOVERY
-Built directly from the stable v1.72 baseline.
+PocketBase backend: https://debqcnsx703a3l3.ba7w.pocketbasecloud.com
 
-- Retains the successful v1.72 service-worker/update architecture.
-- Does NOT include the v1.73 update-check rewrite.
-- Before first-time setup is evaluated, checks for existing users in stockscan_users_v117.
-- If existing users are present but stockscan_auth_v117 is missing, restores ONLY the setup/auth marker.
-- Does not create, replace, edit or delete any user.
-- Does not clear localStorage.
-- Does not clear IndexedDB or photos.
-- If there really are no existing users, normal FIRST-TIME ADMIN SETUP remains available.
+- First shared live-login build.
+- Uses PocketBase users/auth-with-password.
+- No PocketBase superuser/admin password is embedded.
+- Reads username, role and enabled from the shared user record.
+- Existing local prototype data is not uploaded or deleted yet.
 
 WHAT TO TEST — STOP AT FIRST FAILURE
-1. Publish all v1.74 files to GitHub.
-2. Do NOT create a new Admin before testing.
-3. Open Stock Scan on the PC.
-4. If existing users are still stored, FIRST-TIME ADMIN SETUP should disappear and normal Login should return.
-5. Confirm your existing Admin/User login works.
-6. Repeat on iPhone.
-7. Confirm existing users/settings are present.
-8. Only after account recovery passes, continue with photo/detail testing.
+1. Publish all v2.0 files to GitHub.
+2. Open Stock Scan on Windows.
+3. Use LIVE STOCK SCAN LOGIN with the EMAIL and password from the PocketBase users record.
+4. It must open Home as your Admin account.
+5. Open Stock Scan on iPhone.
+6. Use the SAME email/password.
+7. It must open Home as the same Admin account.
+8. Stop and report the result before we migrate sections, permissions, parts or photos.
